@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* --- LIGHT THEME TOKENS --- */
+    --bg-main: #f3f4f6;
+    --bg-mesh: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --card-border: rgba(255, 255, 255, 0.8);
+    --card-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --glass-glow: rgba(99, 102, 241, 0.15);
+    
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #9ca3af;
+    
+    --neumorph-flat: 6px 6px 12px #d1d5db, -6px -6px 12px #ffffff;
+    --neumorph-pressed: inset 4px 4px 8px #d1d5db, inset -4px -4px 8px #ffffff;
+    --neumorph-hover: 8px 8px 16px #cbd5e1, -8px -8px 16px #ffffff;
+
+    --status-good: #059669;
+    --status-good-bg: rgba(16, 185, 129, 0.15);
+    --status-warning: #d97706;
+    --status-warning-bg: rgba(245, 158, 11, 0.15);
+    --status-danger: #dc2626;
+    --status-danger-bg: rgba(239, 68, 68, 0.15);
+  }
+
+  [data-theme="dark"] {
+    /* --- DARK THEME TOKENS --- */
+    --bg-main: #0b0f19;
+    --bg-mesh: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+    --card-bg: rgba(17, 24, 39, 0.65);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --glass-glow: rgba(129, 140, 248, 0.25);
+    
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    
+    --neumorph-flat: 6px 6px 14px #070a11, -6px -6px 14px #151e31;
+    --neumorph-pressed: inset 4px 4px 8px #06090f, inset -4px -4px 8px #162035;
+    --neumorph-hover: 8px 8px 18px #05070d, -8px -8px 18px #18233b;
+
+    --status-good: #10b981;
+    --status-good-bg: rgba(16, 185, 129, 0.2);
+    --status-warning: #f59e0b;
+    --status-warning-bg: rgba(245, 158, 11, 0.2);
+    --status-danger: #ef4444;
+    --status-danger-bg: rgba(239, 68, 68, 0.2);
+  }
+}
+
+body {
+  background-color: var(--bg-main);
+  background-image: var(--bg-mesh);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Glassmorphism utility classes */
+.glass-panel {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.glass-panel-glow {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow), 0 0 20px var(--glass-glow);
+}
+
+/* Neumorphism utility classes */
+.neu-button {
+  background-color: var(--card-bg);
+  box-shadow: var(--neumorph-flat);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--card-border);
+}
+
+.neu-button:hover {
+  box-shadow: var(--neumorph-hover);
+  transform: translateY(-1px);
+}
+
+.neu-button:active {
+  box-shadow: var(--neumorph-pressed);
+  transform: translateY(0px);
+}
+
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}

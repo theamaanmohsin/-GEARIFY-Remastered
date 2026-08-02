@@ -20,10 +20,12 @@ from datetime import datetime, timezone, timedelta
 # Ensure the project root is importable
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 load_dotenv()
 
 from werkzeug.security import generate_password_hash
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import sessionmaker
 
 from api.models import (
@@ -317,6 +319,7 @@ def seed():
                 session.add(record)
                 session.flush()  # get record.id
 
+                # pyrefly: ignore [not-iterable]
                 for part_name, price in rd["parts"]:
                     part_obj = session.query(ServicePart).filter_by(name=part_name).first()
                     line = ServiceLineItem(

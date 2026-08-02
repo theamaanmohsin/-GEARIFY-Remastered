@@ -14,10 +14,12 @@ Key design decisions:
 """
 
 from datetime import datetime, timezone
+# pyrefly: ignore [missing-import]
 from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, Text, ForeignKey,
     CheckConstraint, create_engine
 )
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
 Base = declarative_base()
