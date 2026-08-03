@@ -24,3 +24,10 @@ Thumbs.db
 
 # Vercel
 .vercel/
+
+# Uploads (dev photo storage)
+uploads/
+
+# Tooling
+pyrefly.toml
+tsconfig.tsbuildinfo
