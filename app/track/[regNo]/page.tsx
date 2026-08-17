@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ShieldCheck, Wrench, FileText, AlertCircle } from "lucide-react";
 
 interface TrackData {
@@ -31,6 +31,7 @@ interface TrackData {
 export default function PublicVehiclePassportPage() {
   const params = useParams();
   const regNo = params.regNo as string;
+  const reduceMotion = useReducedMotion();
   const [data, setData] = useState<TrackData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +40,6 @@ export default function PublicVehiclePassportPage() {
     if (!regNo) return;
     const fetchPassport = async () => {
       try {
-        // Use the dedicated public tracking API endpoint
         const res = await fetch(`/api/track/${encodeURIComponent(regNo)}`);
         if (res.ok) {
           const json = await res.json();
@@ -61,12 +61,22 @@ export default function PublicVehiclePassportPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <div className="glass-panel rounded-2xl p-8 text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto animate-pulse">
-            <Wrench className="w-6 h-6 text-indigo-500" />
+      <div className="max-w-3xl mx-auto space-y-6 pb-12">
+        <div className="glass-panel relative overflow-hidden rounded-3xl p-8 space-y-6" style={{ borderColor: "var(--card-border)" }}>
+          <div className="absolute inset-0 animate-shimmer" />
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl" style={{ backgroundColor: "var(--bg-surface)" }} />
+            <div className="space-y-2">
+              <div className="h-4 w-24 rounded" style={{ backgroundColor: "var(--bg-surface)" }} />
+              <div className="h-6 w-36 rounded" style={{ backgroundColor: "var(--bg-surface)" }} />
+            </div>
           </div>
-          <p className="text-sm text-gray-400 font-medium">Loading Digital Vehicle Passport...</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="h-16 rounded-2xl" style={{ backgroundColor: "var(--bg-surface)" }} />
+            <div className="h-16 rounded-2xl" style={{ backgroundColor: "var(--bg-surface)" }} />
+            <div className="h-16 rounded-2xl" style={{ backgroundColor: "var(--bg-surface)" }} />
+          </div>
+          <div className="h-20 rounded-2xl" style={{ backgroundColor: "var(--bg-surface)" }} />
         </div>
       </div>
     );
@@ -75,9 +85,9 @@ export default function PublicVehiclePassportPage() {
   if (error || !data) {
     return (
       <div className="text-center py-16 space-y-3">
-        <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Passport Not Found</h2>
-        <p className="text-xs text-gray-500">
+        <AlertCircle className="w-10 h-10 mx-auto" style={{ color: "var(--status-danger)" }} />
+        <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Passport Not Found</h2>
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
           {error || `No vehicle registered with plate "${regNo}".`}
         </p>
       </div>
@@ -86,39 +96,53 @@ export default function PublicVehiclePassportPage() {
 
   const { vehicle, history } = data;
 
+  const statusStyle =
+    vehicle.status === "good"
+      ? { color: "var(--status-good)", bg: "var(--status-good-bg)" }
+      : vehicle.status === "warning"
+      ? { color: "var(--status-warning)", bg: "var(--status-warning-bg)" }
+      : { color: "var(--status-danger)", bg: "var(--status-danger-bg)" };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-12">
       {/* Public Header Card */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 300, damping: 28 }}
         className="glass-panel rounded-3xl p-8 shadow-2xl relative overflow-hidden space-y-6"
+        style={{ borderColor: "var(--card-border)" }}
       >
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-indigo-500 to-purple-500" />
+        <div
+          className="absolute top-0 left-0 right-0 h-1.5"
+          style={{ background: "linear-gradient(90deg, var(--status-good), var(--accent), var(--accent-secondary))" }}
+        />
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg text-white"
+              style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-secondary))" }}
+            >
               <Wrench className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-widest text-indigo-500 uppercase">
+              <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "var(--accent)" }}>
                 Official QR Passport
               </span>
-              <h1 className="text-2xl font-black font-mono tracking-wider uppercase text-gray-900 dark:text-white">
+              <h1 className="text-2xl font-black font-mono tracking-wider uppercase" style={{ color: "var(--text-primary)" }}>
                 {vehicle.registration_no}
               </h1>
             </div>
           </div>
 
           <div
-            className={`px-3 py-1.5 rounded-full font-bold text-xs flex items-center gap-1.5 border ${
-              vehicle.status === "good"
-                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                : vehicle.status === "warning"
-                ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                : "bg-rose-500/10 text-rose-500 border-rose-500/20"
-            }`}
+            className="px-3 py-1.5 rounded-full font-bold text-xs flex items-center gap-1.5 border"
+            style={{
+              color: statusStyle.color,
+              backgroundColor: statusStyle.bg,
+              borderColor: `${statusStyle.color}30`,
+            }}
           >
             <ShieldCheck className="w-4 h-4" />
             <span className="capitalize">{vehicle.status} Health</span>
@@ -126,20 +150,20 @@ export default function PublicVehiclePassportPage() {
         </div>
 
         {/* Specs Overview */}
-        <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-gray-500/5 border border-white/10 text-center">
+        <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl border text-center" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
           <div>
-            <span className="text-[10px] text-gray-400 uppercase tracking-wider block">Make / Model</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">
+            <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: "var(--text-muted)" }}>Make / Model</span>
+            <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>
               {vehicle.make} {vehicle.model}
             </span>
           </div>
           <div>
-            <span className="text-[10px] text-gray-400 uppercase tracking-wider block">Model Year</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">{vehicle.year}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: "var(--text-muted)" }}>Model Year</span>
+            <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{vehicle.year}</span>
           </div>
           <div>
-            <span className="text-[10px] text-gray-400 uppercase tracking-wider block">Recorded Odometer</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">
+            <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: "var(--text-muted)" }}>Recorded Odometer</span>
+            <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>
               {vehicle.current_km.toLocaleString()} KM
             </span>
           </div>
@@ -147,41 +171,36 @@ export default function PublicVehiclePassportPage() {
 
         {/* Owner info if available */}
         {vehicle.owner_name && (
-          <div className="text-xs text-center text-gray-500">
-            Registered Owner: <span className="font-semibold text-gray-700 dark:text-gray-300">{vehicle.owner_name}</span>
+          <div className="text-xs text-center font-medium" style={{ color: "var(--text-secondary)" }}>
+            Registered Owner: <span className="font-bold" style={{ color: "var(--text-primary)" }}>{vehicle.owner_name}</span>
           </div>
         )}
 
         {/* Health Score Gauge Bar */}
-        <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-2">
+        <div className="p-4 rounded-2xl border space-y-2" style={{ backgroundColor: "var(--accent-muted)", borderColor: "var(--accent-light)" }}>
           <div className="flex justify-between items-center text-xs">
-            <span className="font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+            <span className="font-extrabold uppercase tracking-wider" style={{ color: "var(--accent)" }}>
               GEARIFY Health Index
             </span>
-            <span className="font-mono font-black text-lg text-gray-900 dark:text-white">
+            <span className="font-mono font-black text-lg" style={{ color: "var(--text-primary)" }}>
               {vehicle.health_score}/100
             </span>
           </div>
-          <div className="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+          <div className="w-full h-3 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-surface)" }}>
             <motion.div
-              initial={{ width: 0 }}
+              initial={reduceMotion ? { width: `${vehicle.health_score}%` } : { width: 0 }}
               animate={{ width: `${vehicle.health_score}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className={`h-full rounded-full ${
-                vehicle.status === "good"
-                  ? "bg-emerald-500"
-                  : vehicle.status === "warning"
-                  ? "bg-amber-500"
-                  : "bg-rose-500"
-              }`}
+              transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 80, damping: 20 }}
+              className="h-full rounded-full"
+              style={{ backgroundColor: statusStyle.color }}
             />
           </div>
         </div>
 
         {/* History Timeline */}
-        <div className="space-y-3 pt-4 border-t border-gray-200/50 dark:border-white/10">
-          <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
-            <FileText className="w-4 h-4" /> Verified Workshop Service Logs
+        <div className="space-y-3 pt-4 border-t" style={{ borderColor: "var(--divider)" }}>
+          <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--text-primary)" }}>
+            <FileText className="w-4 h-4" style={{ color: "var(--accent)" }} /> Verified Workshop Service Logs
           </h3>
 
           {history.length > 0 ? (
@@ -189,29 +208,34 @@ export default function PublicVehiclePassportPage() {
               {history.map((record, idx) => (
                 <motion.div
                   key={record.id}
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + idx * 0.05 }}
-                  className="p-3.5 rounded-xl bg-gray-500/5 border border-gray-200/40 dark:border-white/5 space-y-1.5"
+                  transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 300, damping: 28, delay: 0.1 + idx * 0.05 }}
+                  className="p-3.5 rounded-xl border space-y-1.5"
+                  style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}
                 >
                   <div className="flex items-center justify-between text-xs">
                     <div>
-                      <span className="font-mono text-gray-400 block text-[10px]">{record.date}</span>
-                      <span className="font-semibold text-gray-900 dark:text-white">
+                      <span className="font-mono block text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>{record.date}</span>
+                      <span className="font-bold" style={{ color: "var(--text-primary)" }}>
                         Service at {record.km_at_service.toLocaleString()} KM
                       </span>
                     </div>
-                    <div className="font-mono font-bold text-indigo-500">
+                    <div className="font-mono font-black" style={{ color: "var(--accent)" }}>
                       {record.currency} {record.total_cost.toLocaleString()}
                     </div>
                   </div>
-                  {/* Show parts replaced */}
                   {record.parts && record.parts.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {record.parts.map((part, i) => (
                         <span
                           key={i}
-                          className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 text-[9px] font-semibold border border-indigo-500/20"
+                          className="px-2 py-0.5 rounded-full text-[9px] font-bold border"
+                          style={{
+                            backgroundColor: "var(--accent-muted)",
+                            color: "var(--accent)",
+                            borderColor: "var(--accent-light)",
+                          }}
                         >
                           {part}
                         </span>
@@ -222,7 +246,7 @@ export default function PublicVehiclePassportPage() {
               ))}
             </div>
           ) : (
-            <p className="text-xs text-gray-400 italic py-4 text-center">
+            <p className="text-xs italic py-4 text-center" style={{ color: "var(--text-muted)" }}>
               No service records found for this vehicle.
             </p>
           )}
@@ -230,8 +254,8 @@ export default function PublicVehiclePassportPage() {
       </motion.div>
 
       {/* Footer Branding */}
-      <div className="text-center text-[10px] text-gray-400 uppercase tracking-widest">
-        Verified by GEARIFY Automotive Performance Management System
+      <div className="text-center text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+        Verified by GEARIFY REMASTERED Automotive Performance Management System
       </div>
     </div>
   );

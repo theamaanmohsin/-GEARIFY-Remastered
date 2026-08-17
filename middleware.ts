@@ -7,6 +7,8 @@ export function middleware(request: NextRequest) {
 
   // Protected paths requiring login token
   const isProtectedPath =
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/") ||
     pathname.startsWith("/services/new") ||
     pathname.startsWith("/admin");
 
@@ -19,5 +21,12 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/services/new/:path*", "/admin/:path*"],
+  matcher: [
+    "/dashboard",
+    "/dashboard/:path*",
+    "/services/new",
+    "/services/new/:path*",
+    "/admin",
+    "/admin/:path*",
+  ],
 };

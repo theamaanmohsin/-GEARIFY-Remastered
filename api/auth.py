@@ -1,5 +1,5 @@
 """
-Gearify v2 — Authentication & Authorization Module
+GEARIFY-Remastered — Authentication & Authorization Module
 
 Handles:
   - Password hashing (werkzeug.security)
@@ -47,11 +47,28 @@ def create_token(user_id: int, email: str, role: str, name: str) -> str:
 
 
 def decode_token(token: str) -> dict | None:
-    """Decodes and validates a JWT token. Returns payload dict or None if invalid."""
+    """Decodes and validates a JWT token. Returns payload dict or None if invalid.
+
+    Gracefully handles malformed, tampered, and expired tokens so callers never
+    see an unhandled exception — every failure simply resolves to ``None``.
+    """
+    if not token or not isinstance(token, str):
+        return None
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+    except jwt.ExpiredSignatureError:
+        # Token is well-formed but past its exp — treat as logged out.
+        return None
+    except jwt.InvalidSignatureError:
+        # Signing key mismatch / tampered token.
+        return None
+    except (jwt.DecodeError, jwt.InvalidAlgorithmError, jwt.InvalidTokenError):
+        # Malformed base64 payload, wrong algorithm, or otherwise unparseable.
+        return None
+    except Exception:
+        # Any other unexpected decoding failure must never crash a request.
         return None
 
 

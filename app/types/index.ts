@@ -1,5 +1,5 @@
 /* ===================================================================
-   Gearify v2 — TypeScript Interfaces
+   GEARIFY-Remastered — TypeScript Interfaces
    Mirrors the SQLAlchemy models from api/models.py
    =================================================================== */
 

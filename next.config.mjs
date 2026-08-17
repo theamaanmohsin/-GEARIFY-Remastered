@@ -8,7 +8,23 @@ const nextConfig = {
         source: "/api/:path*",
         destination: "http://localhost:5328/api/:path*",
       },
+      {
+        source: "/uploads/:path*",
+        destination: "http://localhost:5328/uploads/:path*",
+      },
     ];
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "plus.unsplash.com",
+      },
+    ],
   },
 };
 

@@ -1,5 +1,5 @@
 """
-Gearify v2 — SQLAlchemy ORM Models
+GEARIFY-Remastered — SQLAlchemy ORM Models
 
 Migrated from v1's JSON flat files (users.json, cars.json, prices.json,
 history.json, settings.json) to normalized Postgres tables.
@@ -262,11 +262,11 @@ def get_engine():
       - pool_size=1: each function invocation is short-lived
       - pool_pre_ping=True: handles stale connections from warm starts
       - pool_recycle=300: refresh connections older than 5 min
-    Uses the Neon pooled connection string (pgbouncer endpoint).
+    Uses the Neon pooled connection string (pgbouncer endpoint), or local SQLite fallback.
     """
-    database_url = os.environ.get("DATABASE_URL", "")
-    if not database_url:
-        raise RuntimeError("DATABASE_URL environment variable is not set")
+    database_url = os.environ.get("DATABASE_URL", "sqlite:///gearify.db")
+    if database_url.startswith("sqlite"):
+        return create_engine(database_url, connect_args={"check_same_thread": False})
     return create_engine(
         database_url,
         pool_size=1,

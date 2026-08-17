@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Wrench, Lock, Mail, User, Shield, AlertCircle, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { Wrench, Lock, Mail, User, Shield, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import ThemeToggle from "../components/ThemeToggle";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function RegisterPage() {
   const [secretKey, setSecretKey] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +36,15 @@ export default function RegisterPage() {
         }),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        data = { error: text.includes("Internal") ? "Server is starting up. Please try again in a few seconds." : text || `Server error (${res.status})` };
+      }
+
       if (!res.ok) {
         throw new Error(data.error || "Registration failed");
       }
@@ -43,7 +53,7 @@ export default function RegisterPage() {
         localStorage.setItem("gearify_user", JSON.stringify(data.user));
       }
 
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } catch (err: any) {
       setError(err.message);
@@ -53,166 +63,237 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className="glass-panel w-full max-w-md rounded-3xl p-8 shadow-2xl relative overflow-hidden"
-      >
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+    <div className="min-h-screen flex flex-col justify-between py-8 px-4 relative">
+      {/* Top Header */}
+      <div className="max-w-7xl mx-auto w-full flex items-center justify-between z-10">
+        <Link
+          href="/"
+          className="btn-ghost px-4 py-2 text-xs font-semibold"
+        >
+          Back to Home
+        </Link>
+        <ThemeToggle />
+      </div>
 
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-pink-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-indigo-500/30">
-            <Wrench className="w-6 h-6 text-white" />
-          </div>
-          <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">
-            Create GEARIFY Account
-          </h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Join your workshop team on GEARIFY APMS v2
-          </p>
-        </div>
+      {/* Form Container */}
+      <div className="flex-1 flex items-center justify-center my-8 z-10">
+        <motion.div
+          initial={reduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.96, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 300, damping: 28 }}
+          className="glass-panel w-full max-w-md rounded-3xl p-8 shadow-2xl relative overflow-hidden"
+        >
+          {/* Decorative Top Accent Line */}
+          <div
+            className="absolute top-0 left-0 right-0 h-1.5"
+            style={{ background: "linear-gradient(90deg, var(--accent), var(--accent-secondary))" }}
+          />
 
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-2"
-          >
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{error}</span>
-          </motion.div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-              Full Name
-            </label>
-            <div className="relative">
-              <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Amaan Mohsin"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-500/5 border border-gray-200/50 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="amaan@gearify.pk"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-500/5 border border-gray-200/50 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-500/5 border border-gray-200/50 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-              Account Role
-            </label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as "mechanic" | "admin")}
-              className="w-full px-4 py-2.5 rounded-xl bg-gray-500/5 border border-gray-200/50 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+          <div className="text-center mb-6">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg"
+              style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-secondary))" }}
             >
-              <option value="mechanic" className="dark:bg-gray-900">
-                Mechanic (User)
-              </option>
-              <option value="admin" className="dark:bg-gray-900">
-                Workshop Manager (Admin)
-              </option>
-            </select>
+              <Wrench className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-2xl font-black" style={{ color: "var(--text-primary)" }}>
+              Create Account
+            </h2>
+            <p className="text-xs font-medium mt-1" style={{ color: "var(--text-muted)" }}>
+              Join your workshop team on GEARIFY REMASTERED v2.0
+            </p>
           </div>
 
-          {/* Animated Admin Secret Key Box */}
-          <AnimatePresence>
-            {role === "admin" && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden pt-1"
+          {error && (
+            <motion.div
+              initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 25 }}
+              className="mb-5 p-3.5 rounded-xl text-xs font-bold flex items-center gap-2 border"
+              style={{
+                backgroundColor: "var(--status-danger-bg)",
+                borderColor: "var(--status-danger)",
+                color: "var(--status-danger)",
+              }}
+            >
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
+            </motion.div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label
+                className="block text-xs font-bold uppercase tracking-wider mb-1"
+                style={{ color: "var(--text-secondary)" }}
               >
-                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1.5">
-                  <label className="block text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Shield className="w-4 h-4" /> Admin Security Key
-                  </label>
-                  <input
-                    type="password"
-                    required={role === "admin"}
-                    value={secretKey}
-                    onChange={(e) => setSecretKey(e.target.value)}
-                    placeholder="Enter Admin Key (e.g. GearifyAPMS)"
-                    className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-gray-900/60 border border-amber-500/40 text-sm focus:outline-none"
-                  />
-                  <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80">
-                    Required to verify manager permissions.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                Full Name
+              </label>
+              <div className="relative">
+                <User
+                  className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  style={{ color: "var(--text-muted)" }}
+                />
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Amaan Mohsin"
+                  className="input-field"
+                />
+              </div>
+            </div>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            disabled={loading}
-            className="neu-button w-full py-3.5 rounded-xl font-bold text-sm text-indigo-600 dark:text-indigo-400 flex items-center justify-center gap-2 mt-6 uppercase tracking-wider"
-          >
-            {loading ? (
-              <span>Creating Account...</span>
-            ) : (
-              <>
+            <div>
+              <label
+                className="block text-xs font-bold uppercase tracking-wider mb-1"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail
+                  className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  style={{ color: "var(--text-muted)" }}
+                />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="amaan@gearify.pk"
+                  className="input-field"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                className="block text-xs font-bold uppercase tracking-wider mb-1"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Password
+              </label>
+              <div className="relative">
+                <Lock
+                  className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2"
+                  style={{ color: "var(--text-muted)" }}
+                />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="input-field"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                className="block text-xs font-bold uppercase tracking-wider mb-1"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Account Role
+              </label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value as "mechanic" | "admin")}
+                className="w-full px-4 py-2.5 rounded-xl border text-sm font-bold focus:outline-none transition-all"
+                style={{
+                  backgroundColor: "var(--bg-surface)",
+                  borderColor: "var(--card-border)",
+                  color: "var(--text-primary)",
+                }}
+              >
+                <option value="mechanic">Mechanic (User)</option>
+                <option value="admin">Workshop Manager (Admin)</option>
+              </select>
+            </div>
+
+            {/* Animated Admin Secret Key Box */}
+            <AnimatePresence>
+              {role === "admin" && (
+                <motion.div
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 350, damping: 25 }}
+                  className="overflow-hidden pt-1"
+                >
+                  <div
+                    className="p-3.5 rounded-2xl border space-y-1.5"
+                    style={{
+                      backgroundColor: "var(--status-warning-bg)",
+                      borderColor: "var(--status-warning)",
+                    }}
+                  >
+                    <label
+                      className="block text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5"
+                      style={{ color: "var(--status-warning)" }}
+                    >
+                      <Shield className="w-4 h-4" /> Admin Security Key
+                    </label>
+                    <input
+                      type="password"
+                      required={role === "admin"}
+                      value={secretKey}
+                      onChange={(e) => setSecretKey(e.target.value)}
+                      placeholder="Enter Admin Key (e.g. GearifyAPMS)"
+                      className="w-full px-3 py-2 rounded-xl text-sm font-bold border focus:outline-none"
+                      style={{
+                        backgroundColor: "var(--bg-main)",
+                        borderColor: "var(--card-border)",
+                        color: "var(--text-primary)",
+                      }}
+                    />
+                    <p className="text-[10px] font-semibold" style={{ color: "var(--status-warning)" }}>
+                      Required to verify manager permissions.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.button
+              whileHover={reduceMotion ? undefined : { scale: 1.02 }}
+              whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+              type="submit"
+              disabled={loading}
+              className="btn-accent w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 mt-6 uppercase tracking-wider"
+            >
+              {loading ? (
+                <span>Creating Account...</span>
+              ) : (
                 <span>Complete Registration</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </motion.button>
-        </form>
+              )}
+            </motion.button>
+          </form>
 
-        <div className="mt-6 pt-5 border-t border-gray-200/50 dark:border-white/5 text-center text-xs text-gray-500">
-          Already have an account?{" "}
-          <Link
-            href="/login"
-            className="font-bold text-indigo-500 hover:text-indigo-600 underline underline-offset-4"
+          <div
+            className="mt-6 pt-5 border-t text-center text-xs font-medium"
+            style={{ borderColor: "var(--divider)", color: "var(--text-muted)" }}
           >
-            Sign In
-          </Link>
-        </div>
-      </motion.div>
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-bold underline underline-offset-4"
+              style={{ color: "var(--accent)" }}
+            >
+              Sign In
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+
+      <footer
+        className="text-center text-xs font-medium py-2 z-10"
+        style={{ color: "var(--text-muted)" }}
+      >
+        GEARIFY REMASTERED v2.0
+      </footer>
     </div>
   );
 }

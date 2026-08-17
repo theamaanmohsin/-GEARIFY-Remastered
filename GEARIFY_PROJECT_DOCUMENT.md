@@ -1,4 +1,4 @@
-# GEARIFY v2.0 — Automotive Performance Management System
+# GEARIFY-Remastered — Automotive Performance Management System
 
 ## Comprehensive Project Documentation
 

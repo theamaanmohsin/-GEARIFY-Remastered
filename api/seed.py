@@ -1,5 +1,5 @@
 """
-Gearify v2 — Database Seeder
+GEARIFY-Remastered — Database Seeder
 
 Seeds the Postgres database with:
   1. Tables (create_all)
@@ -15,7 +15,12 @@ Or:  cd project_root && python api/seed.py
 
 import os
 import sys
+import io
 from datetime import datetime, timezone, timedelta
+
+# Force UTF-8 encoding for stdout on Windows
+if hasattr(sys.stdout, 'buffer') and sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 # Ensure the project root is importable
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -40,7 +45,7 @@ def seed():
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    print("🔧 Gearify v2 — Database Seeder")
+    print("🔧 Gearify-Remastered — Database Seeder")
     print("=" * 50)
 
     # ------------------------------------------------------------------

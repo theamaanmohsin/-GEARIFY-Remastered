@@ -1,30 +1,32 @@
 {
-  "name": "gearify-v2",
+  "name": "gearify-remastered",
   "version": "2.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
+    "dev": "next dev",
+    "build": "node --max-old-space-size=2048 ./node_modules/next/dist/bin/next build",
     "start": "next start",
     "lint": "next lint",
-    "api": "flask --app api/index run -p 5328 --reload"
+    "api": "python -m flask --app api/index run -p 5328 --reload"
   },
   "dependencies": {
+    "@types/animejs": "^3.1.13",
+    "animejs": "^4.5.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.15.0",
+    "lucide-react": "^0.469.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "framer-motion": "^11.15.0",
-    "lucide-react": "^0.469.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.6.0",
-    "recharts": "^2.15.0"
+    "recharts": "^2.15.0",
+    "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
+    "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "tailwindcss": "^4.0.0",
-    "@tailwindcss/postcss": "^4.0.0"
+    "typescript": "^5.7.0"
   }
 }

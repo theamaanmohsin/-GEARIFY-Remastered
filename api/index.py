@@ -1,5 +1,5 @@
 """
-Gearify v2 — Flask API Serverless Core
+GEARIFY-Remastered — Flask API Serverless Core
 
 Entry point for Vercel functions (`vercel.json` rewrites `/api/*` to `api/index.py`).
 Implements Phase 1, Phase 2, and Phase 3 API endpoints.
@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from flask import Flask, jsonify, request, make_response
+from flask import Flask, jsonify, request, make_response, send_from_directory
 # pyrefly: ignore [missing-import]
 from flask_cors import CORS
 # pyrefly: ignore [missing-import]
@@ -68,13 +68,16 @@ def calculate_health_score(
         now = datetime.now(timezone.utc)
         if last_service_date.tzinfo is None:
             last_service_date = last_service_date.replace(tzinfo=timezone.utc)
-        days_since = (now - last_service_date).days
+        # Guard against negative values if the server's clock is skewed ahead of
+        # the recorded service date (future timestamps would otherwise inflate
+        # the health score computation with a negative time decay).
+        days_since = max((now - last_service_date).days, 0)
         days_ratio = min(days_since / 180.0, 2.0)
 
     flagged_penalty = 1.0 if has_flagged_issues else 0.0
 
     score = 100 - (km_ratio * 40) - (days_ratio * 30) - (flagged_penalty * 30)
-    return max(0, min(100, int(round(score))))
+    return max(0, min(100, round(score)))
 
 
 def get_status_from_score(score: int) -> str:
@@ -84,6 +87,50 @@ def get_status_from_score(score: int) -> str:
         return "warning"
     else:
         return "danger"
+
+
+def safe_int(value) -> int:
+    """Coerces a DB aggregation result to a plain int without raising.
+
+    SQLAlchemy aggregation rows (sum/count labels) can be ``None``, ``Decimal``,
+    ``float``, or ``str`` depending on the backend (SQLite vs Postgres). This
+    helper normalises any of them to ``int`` and falls back to ``0`` on failure
+    so analytics and KPI endpoints never crash on type edge cases.
+    """
+    if value is None:
+        return 0
+    if isinstance(value, bool):
+        return int(value)
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return 0
+
+
+_default_settings = [
+    Setting(key="admin_key", value="GearifyAPMS"),
+    Setting(key="default_currency", value="PKR"),
+]
+
+
+def seed_default_settings(session) -> None:
+    """Creates default admin_key / default_currency settings if they are missing.
+
+    Defensive cold-start guard so registration (which reads admin_key) and
+    receipt generation (which reads default_currency) never hit a settings table
+    that was created without its seed rows (e.g. fresh DB or partial migration).
+    """
+    try:
+        for default in _default_settings:
+            exists = (
+                session.query(Setting).filter_by(key=default.key).first()
+            )
+            if not exists:
+                session.add(Setting(key=default.key, value=default.value))
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        app.logger.warning(f"Default settings seeding skipped: {e}")
 
 
 _db_initialized = False
@@ -97,6 +144,17 @@ def ensure_db():
             _db_initialized = True
         except Exception as e:
             app.logger.error(f"DB init failed: {e}")
+            return
+
+        # Cold-start settings seeding — safe to run repeatedly.
+        try:
+            session = get_session()
+            try:
+                seed_default_settings(session)
+            finally:
+                session.close()
+        except Exception as e:
+            app.logger.warning(f"Settings seed error: {e}")
 
 
 # ---------------------------------------------------------------------------
@@ -158,9 +216,9 @@ def register_user():
         session.add(user)
         session.commit()
 
-        token = create_token(user.id, user.email, user.role, user.name)
+        token = create_token(int(getattr(user, "id")), str(getattr(user, "email")), str(getattr(user, "role")), str(getattr(user, "name")))
         res = jsonify({"message": "Registration successful", "user": user.to_dict(), "token": token})
-        res.set_cookie("gearify_token", token, httponly=True, samesite="Lax", max_age=86400)
+        res.set_cookie("gearify_token", token, path="/", httponly=True, samesite="Lax", max_age=86400)
         return res, 201
 
     except Exception as e:
@@ -182,12 +240,12 @@ def login_user():
     session = get_session()
     try:
         user = session.query(User).filter_by(email=email).first()
-        if not user or not verify_password(password, user.password_hash):
+        if not user or not verify_password(password, str(user.password_hash)):
             return jsonify({"error": "Invalid email or password"}), 401
 
-        token = create_token(user.id, user.email, user.role, user.name)
+        token = create_token(int(getattr(user, "id")), str(getattr(user, "email")), str(getattr(user, "role")), str(getattr(user, "name")))
         res = jsonify({"message": "Login successful", "user": user.to_dict(), "token": token})
-        res.set_cookie("gearify_token", token, httponly=True, samesite="Lax", max_age=86400)
+        res.set_cookie("gearify_token", token, path="/", httponly=True, samesite="Lax", max_age=86400)
         return res
 
     finally:
@@ -204,7 +262,9 @@ def get_current_user():
 @app.route("/api/auth/logout", methods=["POST"])
 def logout_user():
     res = jsonify({"message": "Logged out successfully"})
-    res.set_cookie("gearify_token", "", expires=0)
+    # Clear the cookie from the whole site scope so it isn't left dangling
+    # for paths that were protected when the session cookie lacked path="/".
+    res.set_cookie("gearify_token", "", path="/", expires=0)
     return res
 
 
@@ -233,11 +293,11 @@ def list_vehicles():
         for v in vehicles:
             data = v.to_dict(include_latest_service=True)
             ls = data.get("latest_service")
-            if ls:
+            if ls and isinstance(ls, dict):
                 score = calculate_health_score(
-                    current_km=v.current_km,
-                    km_at_last_service=ls["km_at_service"],
-                    next_service_km=ls["next_service_km"],
+                    current_km=int(getattr(v, "current_km", 0)),
+                    km_at_last_service=int(ls.get("km_at_service", 0)),
+                    next_service_km=int(ls.get("next_service_km", 0)),
                     last_service_date=v.service_records[0].created_at if v.service_records else None,
                     has_flagged_issues=bool(v.service_records[0].mechanic_notes) if v.service_records else False,
                 )
@@ -268,8 +328,13 @@ def create_vehicle():
     owner_phone = data.get("owner_phone", "").strip() or None
     vin = data.get("vin", "").strip().upper() or None
 
-    if not reg_no or not make or not model or not year:
-        return jsonify({"error": "Registration number, make, model, and year are required"}), 400
+    if year is None:
+        return jsonify({"error": "Year and current KM must be valid numbers"}), 400
+    try:
+        year_val = int(year)
+        km_val = int(current_km)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Year and current KM must be valid numbers"}), 400
 
     session = get_session()
     try:
@@ -281,8 +346,8 @@ def create_vehicle():
             registration_no=reg_no,
             make=make,
             model=model,
-            year=int(year),
-            current_km=int(current_km),
+            year=year_val,
+            current_km=km_val,
             vehicle_type=vehicle_type,
             owner_name=owner_name,
             owner_phone=owner_phone,
@@ -317,17 +382,37 @@ def create_service():
     make = data.get("make", "").strip()
     model = data.get("model", "").strip()
     year = data.get("year")
-    km_at_service = data.get("current_km")
+    
+    raw_km = data.get("current_km")
+    if raw_km is None:
+        return jsonify({"error": "Registration number and valid current odometer KM are required"}), 400
+    try:
+        km_at_service = int(raw_km)
+    except (ValueError, TypeError):
+        return jsonify({"error": "Registration number and valid current odometer KM are required"}), 400
+
+    try:
+        labor_cost = int(data.get("labor_cost", 0))
+    except (ValueError, TypeError):
+        labor_cost = 0
+
     vehicle_type = data.get("vehicle_type", "car").lower()
-    labor_cost = int(data.get("labor_cost", 0))
     mechanic_notes = data.get("notes", "").strip() or None
-    selected_part_ids = data.get("part_ids", [])  # list of int IDs for parts chosen
+    
+    raw_part_ids = data.get("part_ids", [])
+    selected_part_ids = []
+    if isinstance(raw_part_ids, list):
+        for pid in raw_part_ids:
+            try:
+                selected_part_ids.append(int(pid))
+            except (ValueError, TypeError):
+                pass
 
     user_payload = request.user  # type: ignore
     mechanic_id = user_payload.get("user_id", 1)
 
-    if not reg_no or km_at_service is None:
-        return jsonify({"error": "Registration number and current odometer KM are required"}), 400
+    if not reg_no:
+        return jsonify({"error": "Registration number is required"}), 400
 
     session = get_session()
     try:
@@ -336,11 +421,16 @@ def create_service():
         if not vehicle:
             if not make or not model or not year:
                 return jsonify({"error": "Make, model, and year required for new vehicle"}), 400
+            try:
+                year_val = int(year)
+            except (ValueError, TypeError):
+                return jsonify({"error": "Year must be a valid number"}), 400
+
             vehicle = Vehicle(
                 registration_no=reg_no,
                 make=make,
                 model=model,
-                year=int(year),
+                year=year_val,
                 current_km=int(km_at_service),
                 vehicle_type=vehicle_type,
             )
@@ -348,11 +438,12 @@ def create_service():
             session.flush()
         else:
             # Update vehicle odometer reading
-            vehicle.current_km = max(vehicle.current_km, int(km_at_service))
+            v_curr_km = int(getattr(vehicle, "current_km", 0))
+            setattr(vehicle, "current_km", max(v_curr_km, km_at_service))
 
         # Predictive service calculation: +15,000 for car/lcv, +3,000 for motorcycle
-        interval = 3000 if vehicle.vehicle_type == "motorcycle" else 15000
-        next_service_km = int(km_at_service) + interval
+        interval = 3000 if getattr(vehicle, "vehicle_type") == "motorcycle" else 15000
+        next_service_km = km_at_service + interval
 
         # Calculate line items and total cost (only for selected parts!)
         total_cost = labor_cost
@@ -360,7 +451,16 @@ def create_service():
 
         if selected_part_ids:
             parts = session.query(ServicePart).filter(ServicePart.id.in_(selected_part_ids)).all()
-            for part in parts:
+            # Dictionary lookup so duplicate part IDs (e.g. a part wrongly sent
+            # twice) still resolve to the same part and are priced/listed once,
+            # keeping line items and the grand total accurate.
+            parts_map = {part.id: part for part in parts}
+            seen_ids = set()
+            for pid in selected_part_ids:
+                part = parts_map.get(pid)
+                if part is None or part.id in seen_ids:
+                    continue
+                seen_ids.add(part.id)
                 cost = part.unit_price
                 total_cost += cost
                 line_items.append(
@@ -457,7 +557,7 @@ def get_service_history():
                 "currency": r.currency,
                 "km_at_service": r.km_at_service,
                 "next_service_km": r.next_service_km,
-                "items_count": len(r.line_items),
+                "items_count": len(getattr(r, "line_items", [])),
             })
 
         return jsonify({"history": results, "count": len(results)})
@@ -560,7 +660,14 @@ def update_part_price(part_id):
     data = request.get_json() or {}
     new_price = data.get("unit_price")
 
-    if new_price is None or int(new_price) < 0:
+    # Validate a coercible positive integer price, catching malformed strings
+    # (e.g. "abc") that previously raised an unhandled ValueError -> 500.
+    try:
+        new_price_int = int(float(new_price))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Valid positive unit_price is required"}), 400
+
+    if new_price_int < 0:
         return jsonify({"error": "Valid positive unit_price is required"}), 400
 
     session = get_session()
@@ -569,7 +676,7 @@ def update_part_price(part_id):
         if not part:
             return jsonify({"error": "Part not found"}), 404
 
-        part.unit_price = int(new_price)
+        setattr(part, "unit_price", new_price_int)
         if "name" in data:
             part.name = data["name"]
         if "brand" in data:
@@ -634,7 +741,7 @@ def delete_part(part_id):
         if not part:
             return jsonify({"error": "Part not found"}), 404
 
-        part.is_active = False
+        setattr(part, "is_active", False)
         session.commit()
         return jsonify({"message": "Part deleted (deactivated) successfully"})
 
@@ -760,10 +867,10 @@ def get_analytics():
 
         revenue_trend = [
             {
-                "month": month_names[int(r.month)] if int(r.month) <= 12 else str(r.month),
-                "year": int(r.year),
-                "revenue": int(r.revenue or 0),
-                "services": int(r.services or 0),
+                "month": month_names[safe_int(r.month)] if 1 <= safe_int(r.month) <= 12 else str(r.month or ""),
+                "year": safe_int(r.year) if r.year is not None else 2026,
+                "revenue": safe_int(r.revenue),
+                "services": safe_int(r.services),
             }
             for r in monthly_revenue
         ]
@@ -783,9 +890,9 @@ def get_analytics():
 
         parts_data = [
             {
-                "name": p.part_name_snapshot,
-                "count": int(p.count),
-                "revenue": int(p.revenue or 0),
+                "name": str(p[0]),
+                "count": safe_int(p[1]),
+                "revenue": safe_int(p[2]),
             }
             for p in top_parts
         ]
@@ -805,8 +912,8 @@ def get_analytics():
         mechanics = [
             {
                 "name": m.name,
-                "services": int(m.services or 0),
-                "revenue": int(m.revenue or 0),
+                "services": safe_int(m.services),
+                "revenue": safe_int(m.revenue),
             }
             for m in mechanic_stats
         ]
@@ -828,9 +935,9 @@ def get_analytics():
             "top_parts": parts_data,
             "mechanic_stats": mechanics,
             "summary": {
-                "total_revenue": int(total_revenue),
-                "total_services": int(total_services),
-                "total_vehicles": int(total_vehicles),
+                "total_revenue": safe_int(total_revenue),
+                "total_services": safe_int(total_services),
+                "total_vehicles": safe_int(total_vehicles),
                 "avg_per_service": int(total_revenue / total_services) if total_services else 0,
                 "most_replaced": most_replaced,
                 "currency": currency,
@@ -844,20 +951,25 @@ def get_analytics():
 # ---------------------------------------------------------------------------
 # QR Vehicle Passport — §8.1 (server-side QR generation)
 # ---------------------------------------------------------------------------
-@app.route("/api/vehicles/<reg_no>/qr", methods=["GET"])
+@app.route("/api/vehicles/<path:reg_no>/qr", methods=["GET"])
 def generate_vehicle_qr(reg_no):
     """
     Generates a QR code image encoding the public tracking URL for this vehicle.
     Returns a PNG image response.
     """
+    # `<path:reg_no>` converter may yield slashes from URL-encoded plates; the
+    # tracking page itself defines its regNo segment without slashes, so keep
+    # the encoded form intact for the QR payload.
+    display_reg = reg_no.strip().upper()
+
     try:
-        # pyrefly: ignore [missing-import]
+        # type: ignore
         import qrcode
         from io import BytesIO
 
         # Build the public tracking URL
         base_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
-        tracking_url = f"{base_url}/track/{reg_no}"
+        tracking_url = f"{base_url}/track/{display_reg}"
 
         qr = qrcode.QRCode(
             version=1,
@@ -871,7 +983,7 @@ def generate_vehicle_qr(reg_no):
         img = qr.make_image(fill_color="#1e1b4b", back_color="white")
 
         buf = BytesIO()
-        img.save(buf, format="PNG")
+        img.save(buf, "PNG")
         buf.seek(0)
 
         response = make_response(buf.read())
@@ -888,7 +1000,7 @@ def generate_vehicle_qr(reg_no):
 # ---------------------------------------------------------------------------
 # Public Vehicle Tracking Data — §8.1 / §8.6 (no auth required)
 # ---------------------------------------------------------------------------
-@app.route("/api/track/<reg_no>", methods=["GET"])
+@app.route("/api/track/<path:reg_no>", methods=["GET"])
 def get_vehicle_passport(reg_no):
     """
     Public read-only endpoint for QR passport pages.
@@ -898,19 +1010,19 @@ def get_vehicle_passport(reg_no):
     session = get_session()
     try:
         vehicle = session.query(Vehicle).options(
-            joinedload(Vehicle.service_records)
-        ).filter_by(registration_no=reg_no.upper()).first()
+            joinedload(Vehicle.service_records).joinedload(ServiceRecord.line_items)
+        ).filter_by(registration_no=reg_no.strip().upper()).first()
 
         if not vehicle:
             return jsonify({"error": "Vehicle not found"}), 404
 
         data = vehicle.to_dict(include_latest_service=True)
         ls = data.get("latest_service")
-        if ls:
+        if ls and isinstance(ls, dict):
             score = calculate_health_score(
-                current_km=vehicle.current_km,
-                km_at_last_service=ls["km_at_service"],
-                next_service_km=ls["next_service_km"],
+                current_km=int(getattr(vehicle, "current_km", 0)),
+                km_at_last_service=int(ls.get("km_at_service", 0)),
+                next_service_km=int(ls.get("next_service_km", 0)),
                 last_service_date=vehicle.service_records[0].created_at if vehicle.service_records else None,
                 has_flagged_issues=bool(vehicle.service_records[0].mechanic_notes) if vehicle.service_records else False,
             )
@@ -959,7 +1071,7 @@ def vin_decode():
     Pakistan vehicles often lack US-format VINs, so this is a convenience
     helper, not a requirement. Mechanic can always type make/model/year manually.
     """
-    # pyrefly: ignore [missing-import]
+    # type: ignore
     import requests
 
     data = request.get_json() or {}
@@ -1147,6 +1259,22 @@ def get_service_photos(service_id):
         })
     finally:
         session.close()
+
+
+# ---------------------------------------------------------------------------
+# Static photo serving — §8.4
+# Serves uploaded vehicle photos stored under <project_root>/uploads/photos.
+# In local dev, Next.js rewrites /uploads/* to this Flask server; in production
+# on Vercel, a path like this should be backed by object storage instead, but
+# this keeps receipt photo attachment working in both environments.
+# ---------------------------------------------------------------------------
+@app.route("/uploads/photos/<path:filename>", methods=["GET"])
+def serve_service_photo(filename):
+    """Serves an uploaded service photo file from the local photos directory."""
+    upload_dir = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "uploads", "photos"
+    )
+    return send_from_directory(upload_dir, filename)
 
 
 if __name__ == "__main__":
