@@ -139,7 +139,7 @@ export default function RegisterPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Amaan Mohsin"
+                  placeholder="Full Name"
                   className="input-field"
                 />
               </div>
@@ -162,7 +162,7 @@ export default function RegisterPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="amaan@gearify.pk"
+                  placeholder="name@example.com"
                   className="input-field"
                 />
               </div>
@@ -241,7 +241,7 @@ export default function RegisterPage() {
                       required={role === "admin"}
                       value={secretKey}
                       onChange={(e) => setSecretKey(e.target.value)}
-                      placeholder="Enter Admin Key (e.g. GearifyAPMS)"
+                      placeholder=""
                       className="w-full px-3 py-2 rounded-xl text-sm font-bold border focus:outline-none"
                       style={{
                         backgroundColor: "var(--bg-main)",
