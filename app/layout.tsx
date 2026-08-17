@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import DynamicCursorTrail from "./components/marketing/DynamicCursorTrail";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,6 +29,7 @@ export default function RootLayout({
           <DynamicCursorTrail />
           {children}
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
