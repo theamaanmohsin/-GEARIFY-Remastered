@@ -100,7 +100,7 @@ export default function Navbar() {
               </span>
             </div>
             <p className="text-[10px] font-semibold tracking-wide" style={{ color: "var(--text-muted)" }}>
-              Automotive Performance Management
+              Automotive Performance Management System
             </p>
           </div>
         </Link>
