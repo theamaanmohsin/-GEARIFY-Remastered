@@ -258,15 +258,24 @@ import os
 
 def get_engine():
     """
-    Creates a SQLAlchemy engine tuned for serverless:
-      - pool_size=1: each function invocation is short-lived
-      - pool_pre_ping=True: handles stale connections from warm starts
-      - pool_recycle=300: refresh connections older than 5 min
-    Uses the Neon pooled connection string (pgbouncer endpoint), or local SQLite fallback.
+    Creates a SQLAlchemy engine tuned for serverless (Vercel cold starts):
+      - Handles Postgres / Neon connection pooling
+      - Auto-routes SQLite to /tmp on Vercel read-only filesystem
     """
-    database_url = os.environ.get("DATABASE_URL", "sqlite:///gearify.db")
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+            database_url = "sqlite:////tmp/gearify.db"
+        else:
+            database_url = "sqlite:///gearify.db"
+
+    # Fix postgres:// -> postgresql:// for SQLAlchemy 2.0
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
     if database_url.startswith("sqlite"):
         return create_engine(database_url, connect_args={"check_same_thread": False})
+
     return create_engine(
         database_url,
         pool_size=1,
@@ -282,7 +291,19 @@ def get_session():
     return Session()
 
 def init_db():
-    """Creates all tables if they don't exist. Safe to call on every cold start."""
+    """Creates all tables if they don't exist and auto-seeds initial data. Safe to call on cold start."""
     engine = get_engine()
     Base.metadata.create_all(engine)
+
+    try:
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        # If no users or settings exist in the database, auto-seed defaults
+        if session.query(User).count() == 0 or session.query(Setting).count() == 0:
+            from api.seed import seed
+            seed()
+        session.close()
+    except Exception as e:
+        print(f"Database auto-seed notice: {e}")
+
     return engine

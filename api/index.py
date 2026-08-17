@@ -45,6 +45,12 @@ CORS(app, resources={
     }
 })
 
+# Initialize and verify database tables on cold start
+try:
+    init_db()
+except Exception as e:
+    print(f"Warning on init_db: {e}")
+
 
 # ---------------------------------------------------------------------------
 # Health Score Calculation (pure Python)
