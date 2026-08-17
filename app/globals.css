@@ -63,6 +63,9 @@
     /* Focus Ring — charcoal, not blue */
     --focus-ring: 0 0 0 2px #FAFAF9, 0 0 0 4px #18181B;
 
+    /* Logo Badge System */
+    --logo-icon-color: #85898e;               /* spanner silver/slate in light mode */
+
     /* Shape */
     --shape-corner-rounded: 999px;
   }
@@ -73,6 +76,9 @@
        Tiered charcoal surfaces (#0B0D10 -> #16181C -> #1C1F24),
        muted warm gold / brass accent (#C9A227), zinc typography
     ═══════════════════════════════════════════════════ */
+
+    /* Logo Badge System */
+    --logo-icon-color: #0B0D10;
 
     /* Page & Surface Backgrounds */
     --bg-main: #0B0D10;                        /* near-black charcoal-slate */
@@ -453,6 +459,14 @@ section[id] {
   .hover-lift:hover {
     transform: translateY(-2px);
   }
+}
+
+/* ═══════════════════════════════════════
+   LOGO WRENCH ICON
+═══════════════════════════════════════ */
+.logo-wrench-icon {
+  color: var(--logo-icon-color, #85898e) !important;
+  stroke: var(--logo-icon-color, #85898e) !important;
 }
 
 
