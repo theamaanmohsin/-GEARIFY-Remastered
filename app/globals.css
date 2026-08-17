@@ -78,7 +78,7 @@
     ═══════════════════════════════════════════════════ */
 
     /* Logo Badge System */
-    --logo-icon-color: #0B0D10;
+    --logo-icon-color: #FFFFFF;
 
     /* Page & Surface Backgrounds */
     --bg-main: #0B0D10;                        /* near-black charcoal-slate */
@@ -465,8 +465,8 @@ section[id] {
    LOGO WRENCH ICON
 ═══════════════════════════════════════ */
 .logo-wrench-icon {
-  color: var(--logo-icon-color, #FFFFFF) !important;
-  stroke: var(--logo-icon-color, #FFFFFF) !important;
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
 }
 
 

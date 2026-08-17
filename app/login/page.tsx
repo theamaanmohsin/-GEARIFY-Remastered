@@ -85,7 +85,7 @@ export default function LoginPage() {
               className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
               style={{ backgroundColor: "var(--accent)" }}
             >
-              <Wrench className="w-7 h-7 logo-wrench-icon" />
+              <Wrench className="w-7 h-7 text-white logo-wrench-icon" style={{ color: "#FFFFFF", stroke: "#FFFFFF" }} />
             </div>
             <h2 className="text-2xl font-black" style={{ color: "var(--text-primary)" }}>
               Welcome Back
