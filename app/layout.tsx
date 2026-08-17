@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   title: "GEARIFY REMASTERED — Automotive Performance Management System",
   description:
     "Next-generation automotive service tracking, predictive maintenance, and digital receipts for workshop management.",
+  verification: {
+    google: "Kb2UUpc_TViE-xEI-1brx8GKM6lu7r4xN0JIjILPyO0",
+  },
 };
 
 export default function RootLayout({
