@@ -224,7 +224,7 @@ export default function ReceiptPage() {
         {/* Receipt Header */}
         <div className="text-center border-b pb-6 print:border-black" style={{ borderColor: "var(--divider)" }}>
           <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg print:hidden text-white"
+            className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg print:hidden"
             style={{ backgroundColor: "var(--accent)" }}
           >
             <Wrench className="w-6 h-6 text-[#85898e] dark:text-[#0B0D10]" />

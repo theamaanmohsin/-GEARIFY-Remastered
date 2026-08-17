@@ -121,7 +121,7 @@ export default function PublicVehiclePassportPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg text-white"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
               style={{ backgroundColor: "var(--accent)" }}
             >
               <Wrench className="w-6 h-6 text-[#85898e] dark:text-[#0B0D10]" />
