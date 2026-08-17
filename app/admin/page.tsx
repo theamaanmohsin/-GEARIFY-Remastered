@@ -33,15 +33,25 @@ export default function AdminConsolePage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const getAuthHeaders = () => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("gearify_token") : null;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
   // Fetch Admin Data
   const loadAdminData = async () => {
     setLoading(true);
     try {
+      const authHeaders = getAuthHeaders();
       const [partsRes, usersRes, keyRes, currRes] = await Promise.all([
-        fetch("/api/parts"),
-        fetch("/api/users"),
-        fetch("/api/settings/admin_key"),
-        fetch("/api/settings/default_currency"),
+        fetch("/api/parts", { headers: authHeaders, credentials: "include" }),
+        fetch("/api/users", { headers: authHeaders, credentials: "include" }),
+        fetch("/api/settings/admin_key", { headers: authHeaders, credentials: "include" }),
+        fetch("/api/settings/default_currency", { headers: authHeaders, credentials: "include" }),
       ]);
 
       if (partsRes.ok) {
@@ -80,11 +90,12 @@ export default function AdminConsolePage() {
     try {
       const res = await fetch(`/api/parts/${partId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
+        credentials: "include",
         body: JSON.stringify({ unit_price: Number(editingPrice) }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update price");
+      if (!res.ok) throw new Error(data.error || data.detail || "Failed to update price");
 
       setParts((prev) =>
         prev.map((p) => (p.id === partId ? { ...p, unit_price: Number(editingPrice) } : p))
@@ -92,7 +103,7 @@ export default function AdminConsolePage() {
       setEditingPartId(null);
       setMessage("Price updated successfully!");
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.message || "Failed to update price");
     }
   };
 
@@ -100,11 +111,14 @@ export default function AdminConsolePage() {
   const handleAddPart = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPartName || !newPartBrand || newPartPrice === "") return;
+    setError(null);
+    setMessage(null);
 
     try {
       const res = await fetch("/api/parts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
+        credentials: "include",
         body: JSON.stringify({
           name: newPartName,
           brand: newPartBrand,
@@ -115,7 +129,7 @@ export default function AdminConsolePage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to add part");
+      if (!res.ok) throw new Error(data.error || data.detail || "Failed to add part");
 
       setParts((prev) => [...prev, data.part]);
       setNewPartName("");
@@ -123,36 +137,49 @@ export default function AdminConsolePage() {
       setNewPartPrice("");
       setMessage("New part added to catalog!");
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.message || "Failed to add part");
     }
   };
 
   // Soft delete part
   const handleDeletePart = async (id: number) => {
     if (!confirm("Deactivate this catalog item?")) return;
+    setError(null);
+    setMessage(null);
     try {
-      const res = await fetch(`/api/parts/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setParts((prev) => prev.filter((p) => p.id !== id));
-        setMessage("Part deactivated");
-      }
-    } catch (err) {
-      setError("Error deleting part");
+      const res = await fetch(`/api/parts/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.detail || "Failed to delete part");
+
+      setParts((prev) => prev.filter((p) => p.id !== id));
+      setMessage("Part deactivated successfully");
+    } catch (err: any) {
+      setError(err?.message || "Error deleting part");
     }
   };
 
   // Delete user account
   const handleDeleteUser = async (userId: number, email: string) => {
-    if (!confirm(`Delete user ${email}?`)) return;
+    if (!confirm(`Are you sure you want to delete user ${email}?`)) return;
+    setError(null);
+    setMessage(null);
     try {
-      const res = await fetch(`/api/users/${userId}`, { method: "DELETE" });
+      const res = await fetch(`/api/users/${userId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+        credentials: "include",
+      });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Delete user failed");
+      if (!res.ok) throw new Error(data.error || data.detail || "Delete user failed");
 
       setUsers((prev) => prev.filter((u) => u.id !== userId));
-      setMessage(`User ${email} deleted`);
+      setMessage(data.message || `User ${email} deleted successfully`);
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.message || "Failed to delete user");
     }
   };
 
@@ -160,17 +187,30 @@ export default function AdminConsolePage() {
   const handleUpdateSetting = async (key: string, value: string) => {
     setError(null);
     setMessage(null);
+    if (!value || !value.trim()) {
+      setError("Setting value cannot be empty");
+      return;
+    }
     try {
       const res = await fetch(`/api/settings/${key}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ value }),
+        headers: getAuthHeaders(),
+        credentials: "include",
+        body: JSON.stringify({ value: value.trim() }),
       });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || data.detail || `Failed to update setting '${key}'`);
       }
-      setMessage(`Setting '${key}' updated successfully!`);
+      if (key === "admin_key") {
+        setAdminKey(data.value || value.trim());
+        setMessage("Admin Security Key updated successfully!");
+      } else if (key === "default_currency") {
+        setCurrency(data.value || value.trim());
+        setMessage("Shop Default Currency updated successfully!");
+      } else {
+        setMessage(`Setting '${key}' updated successfully!`);
+      }
     } catch (err: any) {
       setError(err?.message || "Failed to update setting");
     }

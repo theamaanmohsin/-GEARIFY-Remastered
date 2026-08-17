@@ -781,7 +781,8 @@ def list_users():
 def delete_user(user_id):
     """Deletes user account (cannot delete self — ported from v1)."""
     current_user = request.user  # type: ignore
-    if current_user.get("user_id") == user_id:
+    current_user_id = int(current_user.get("user_id", 0))
+    if current_user_id == int(user_id):
         return jsonify({"error": "Self-deletion prohibited", "detail": "You cannot delete your own admin account"}), 400
 
     session = get_session()
@@ -790,9 +791,13 @@ def delete_user(user_id):
         if not user:
             return jsonify({"error": "User not found"}), 404
 
+        # Reassign any service records authored by this mechanic to the executing admin so FK constraints do not fail
+        session.query(ServiceRecord).filter_by(mechanic_id=user_id).update({"mechanic_id": current_user_id})
+
+        user_email = str(getattr(user, "email", f"User #{user_id}"))
         session.delete(user)
         session.commit()
-        return jsonify({"message": f"User {user.email} deleted successfully"})
+        return jsonify({"message": f"User {user_email} deleted successfully"})
 
     except Exception as e:
         session.rollback()
@@ -813,12 +818,12 @@ def get_setting(key):
         session.close()
 
 
-@app.route("/api/settings/<key>", methods=["PUT"])
+@app.route("/api/settings/<key>", methods=["PUT", "POST"])
 @require_role("admin")
 def update_setting(key):
     """Admin updates system setting (e.g. admin secret key or currency)."""
     data = request.get_json() or {}
-    new_value = data.get("value", "").strip()
+    new_value = str(data.get("value", "")).strip()
 
     if not new_value:
         return jsonify({"error": "Setting value cannot be empty"}), 400
