@@ -227,7 +227,7 @@ export default function ReceiptPage() {
             className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg print:hidden"
             style={{ backgroundColor: "var(--accent)" }}
           >
-            <Wrench color="#FFFFFF" className="w-6 h-6 text-white logo-wrench-icon" style={{ color: "#FFFFFF", stroke: "#FFFFFF" }} />
+            <Wrench className="w-6 h-6 logo-wrench-icon" />
           </div>
           <h1 className="text-2xl font-black tracking-wider uppercase print:text-black" style={{ color: "var(--text-primary)" }}>
             GEARIFY REMASTERED APMS

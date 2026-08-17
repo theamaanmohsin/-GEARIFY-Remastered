@@ -78,7 +78,7 @@
     ═══════════════════════════════════════════════════ */
 
     /* Logo Badge System */
-    --logo-icon-color: #FFFFFF;
+    --logo-icon-color: #0B0D10;               /* charcoal/black wrench on gold badge in dark mode */
 
     /* Page & Surface Backgrounds */
     --bg-main: #0B0D10;                        /* near-black charcoal-slate */
@@ -463,11 +463,33 @@ section[id] {
 
 /* ═══════════════════════════════════════
    LOGO WRENCH ICON
+   Light Mode (Black badge) -> Pure White (#FFFFFF)
+   Dark Mode (Gold badge)  -> Black (#0B0D10)
 ═══════════════════════════════════════ */
 .logo-wrench-icon,
 svg.logo-wrench-icon,
 svg.logo-wrench-icon path,
 .logo-wrench-icon path {
+  color: var(--logo-icon-color, #FFFFFF) !important;
+  stroke: var(--logo-icon-color, #FFFFFF) !important;
+}
+
+[data-theme="dark"] .logo-wrench-icon,
+[data-theme="dark"] svg.logo-wrench-icon,
+[data-theme="dark"] svg.logo-wrench-icon path,
+[data-theme="dark"] .logo-wrench-icon path,
+.dark .logo-wrench-icon,
+.dark svg.logo-wrench-icon,
+.dark svg.logo-wrench-icon path,
+.dark .logo-wrench-icon path {
+  color: #0B0D10 !important;
+  stroke: #0B0D10 !important;
+}
+
+:root:not([data-theme="dark"]):not(.dark) .logo-wrench-icon,
+:root:not([data-theme="dark"]):not(.dark) svg.logo-wrench-icon,
+:root:not([data-theme="dark"]):not(.dark) svg.logo-wrench-icon path,
+:root:not([data-theme="dark"]):not(.dark) .logo-wrench-icon path {
   color: #FFFFFF !important;
   stroke: #FFFFFF !important;
 }
