@@ -167,7 +167,7 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
             <div className="text-4xl font-black font-mono tracking-tight text-emerald-400 drop-shadow-sm">
               92.0
             </div>
-            <span className="text-[9px] font-mono uppercase font-semibold text-slate-400 tracking-wider">
+            <span className="text-[9px] font-mono uppercase font-semibold tracking-wider" style={{ color: "var(--text-muted)" }}>
               HEALTH SCORE
             </span>
           </div>
@@ -176,7 +176,7 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
         {/* Bottom Telemetry Ticker Strip */}
         <div className="w-full mt-4 grid grid-cols-2 gap-2 text-center font-mono text-[10px]">
           <div className="p-2 rounded-lg border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
-            <span className="text-slate-400 block">LUBRICANT DECAY</span>
+            <span className="block" style={{ color: "var(--text-muted)" }}>LUBRICANT DECAY</span>
             <span className="font-bold text-emerald-400">96% CLEAN</span>
           </div>
           <div className="p-2 rounded-lg border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
@@ -202,9 +202,9 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
               15,000 KM
             </span>
           </div>
-          <div className="text-[11px] font-mono text-slate-400 flex items-center justify-between">
+          <div className="text-[11px] font-mono flex items-center justify-between" style={{ color: "var(--text-muted)" }}>
             <span>Synthetic 5W-30 / 0W-20</span>
-            <span className="text-slate-500">Full Filter Set</span>
+            <span style={{ color: "var(--text-muted)" }}>Full Filter Set</span>
           </div>
         </div>
 
@@ -219,15 +219,15 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
               3,000 KM
             </span>
           </div>
-          <div className="text-[11px] font-mono text-slate-400 flex items-center justify-between">
+          <div className="text-[11px] font-mono flex items-center justify-between" style={{ color: "var(--text-muted)" }}>
             <span>Mineral 4T 20W-50</span>
-            <span className="text-slate-500">Spark & Chain Clean</span>
+            <span style={{ color: "var(--text-muted)" }}>Spark & Chain Clean</span>
           </div>
         </div>
 
         {/* Fleet Variance Badge */}
         <div className="p-3 rounded-xl border text-center font-mono text-[10px]" style={{ backgroundColor: "var(--card-bg-solid)", borderColor: "var(--card-border)" }}>
-          <span className="text-slate-400">AUTOMATIC CHASSIS ISOLATION · </span>
+          <span style={{ color: "var(--text-muted)" }}>AUTOMATIC CHASSIS ISOLATION · </span>
           <span className="font-bold text-emerald-400">ZERO PART MISMATCH</span>
         </div>
       </div>
@@ -239,7 +239,7 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
       <div className="w-full aspect-square max-w-sm mx-auto flex flex-col justify-between p-5 select-none space-y-3">
         {/* Header Strip */}
         <div className="flex items-center justify-between pb-2 border-b text-[10px] font-mono" style={{ borderColor: "var(--divider)" }}>
-          <span className="font-bold text-slate-400 uppercase">PARTS CATALOG LEDGER</span>
+          <span className="font-bold uppercase" style={{ color: "var(--text-muted)" }}>PARTS CATALOG LEDGER</span>
           <span className="px-2 py-0.5 rounded font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
             PRICE LOCKED
           </span>
@@ -250,7 +250,7 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
           <div className="p-3 rounded-xl border flex items-center justify-between font-mono" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
             <div>
               <span className="block text-xs font-bold" style={{ color: "var(--text-primary)" }}>ENGINE OIL 5W-30 (4L)</span>
-              <span className="text-[10px] text-slate-400">SKU #LUB-5W30-4L</span>
+              <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>SKU #LUB-5W30-4L</span>
             </div>
             <span className="text-xs font-bold text-amber-400">PKR 11,500</span>
           </div>
@@ -258,7 +258,7 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
           <div className="p-3 rounded-xl border flex items-center justify-between font-mono" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
             <div>
               <span className="block text-xs font-bold" style={{ color: "var(--text-primary)" }}>AIR FILTER ELEMENT</span>
-              <span className="text-[10px] text-slate-400">SKU #FLT-AIR-01</span>
+              <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>SKU #FLT-AIR-01</span>
             </div>
             <span className="text-xs font-bold text-amber-400">PKR 1,850</span>
           </div>
@@ -266,7 +266,7 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
           <div className="p-3 rounded-xl border flex items-center justify-between font-mono" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
             <div>
               <span className="block text-xs font-bold" style={{ color: "var(--text-primary)" }}>OIL FILTER HIGH-FLOW</span>
-              <span className="text-[10px] text-slate-400">SKU #FLT-OIL-02</span>
+              <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>SKU #FLT-OIL-02</span>
             </div>
             <span className="text-xs font-bold text-amber-400">PKR 1,250</span>
           </div>
@@ -294,7 +294,7 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
           <div className="flex items-center gap-4">
             {/* Visual QR Code Box with Laser Scan */}
             <div className="w-20 h-20 bg-white rounded-xl p-2 relative flex items-center justify-center shadow-md flex-shrink-0">
-              <QrCode className="w-full h-full text-slate-950" />
+              <QrCode className="w-full h-full text-zinc-950" />
               <motion.div
                 className="absolute left-0 right-0 h-0.5 bg-emerald-500 shadow-[0_0_8px_#10b981]"
                 animate={{ top: ["10%", "90%", "10%"] }}
@@ -304,7 +304,7 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
 
             <div className="space-y-1 font-mono text-[11px]">
               <span className="block font-bold" style={{ color: "var(--text-primary)" }}>HONDA CIVIC 1.8</span>
-              <span className="block text-slate-400">PLATE: APS-2342</span>
+              <span className="block" style={{ color: "var(--text-muted)" }}>PLATE: APS-2342</span>
               <span className="block text-emerald-400 text-[10px] font-bold">PASSPORT ACTIVE</span>
             </div>
           </div>
@@ -312,7 +312,7 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
 
         {/* Scan Status Prompt */}
         <div className="p-3 rounded-xl border text-center font-mono text-[10px]" style={{ backgroundColor: "rgba(16, 185, 129, 0.1)", borderColor: "rgba(16, 185, 129, 0.3)" }}>
-          <span className="text-slate-300">SCAN QR ON RECEIPT TO OPEN </span>
+          <span style={{ color: "var(--text-muted)" }}>SCAN QR ON RECEIPT TO OPEN </span>
           <span className="font-bold text-emerald-400">PUBLIC SERVICE PASSPORT</span>
         </div>
       </div>
@@ -435,10 +435,10 @@ export default function MarketingFeatures() {
                   {/* Metric Bar */}
                   <div className="p-4 rounded-2xl border flex items-center justify-between font-mono text-xs mt-6" style={{ backgroundColor: "var(--card-bg-solid)", borderColor: "var(--card-border)" }}>
                     <div>
-                      <span className="text-[10px] text-slate-500 block uppercase">SYSTEM PERFORMANCE</span>
+                      <span className="text-[10px] block uppercase" style={{ color: "var(--text-muted)" }}>SYSTEM PERFORMANCE</span>
                       <span className="font-black text-xl" style={{ color: "var(--text-primary)" }}>{spread.metric.value}</span>
                     </div>
-                    <span className="text-xs text-right text-slate-400 max-w-xs">{spread.metric.label}</span>
+                    <span className="text-xs text-right max-w-xs" style={{ color: "var(--text-muted)" }}>{spread.metric.label}</span>
                   </div>
                 </motion.div>
 

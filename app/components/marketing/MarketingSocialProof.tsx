@@ -105,7 +105,7 @@ export default function MarketingSocialProof() {
                 <h4 className="font-extrabold text-sm" style={{ color: "var(--text-primary)" }}>
                   {t.author}
                 </h4>
-                <div className="text-xs font-mono text-slate-500">
+                <div className="text-xs font-mono" style={{ color: "var(--text-muted)" }}>
                   {t.role} · {t.workshop}
                 </div>
               </div>

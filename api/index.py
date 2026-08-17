@@ -30,6 +30,10 @@ from api.auth import (
     generate_secure_token, hash_token, secure_compare, auth_rate_limiter, get_client_ip,
     rate_limit
 )
+from api.validators import (
+    sanitize_text, sanitize_search_query, validate_email_address,
+    validate_registration_no, validate_integer_range, validate_image_file
+)
 
 app = Flask(__name__)
 
@@ -221,17 +225,18 @@ def register_user():
     - Generates 24-hour expiring email verification token.
     """
     data = request.get_json() or {}
-    email = data.get("email", "").strip().lower()
-    name = data.get("name", "").strip()
+    raw_email = data.get("email", "")
+    name = sanitize_text(data.get("name", ""), max_length=100)
     password = data.get("password", "")
     role = data.get("role", "mechanic").lower()
     secret_key = data.get("secret_key", "").strip()
 
-    if not email or not name or not password:
-        return jsonify({"error": "Name, email, and password are required"}), 400
+    valid_email, email_error, email = validate_email_address(raw_email)
+    if not valid_email:
+        return jsonify({"error": email_error}), 400
 
-    if "@" not in email or "." not in email:
-        return jsonify({"error": "Please provide a valid email address"}), 400
+    if not name or not password:
+        return jsonify({"error": "Name, email, and password are required"}), 400
 
     if role not in ["mechanic", "admin"]:
         return jsonify({"error": "Invalid role. Must be 'mechanic' or 'admin'"}), 400
@@ -662,12 +667,14 @@ def logout_user():
 # Vehicles Endpoints
 # ---------------------------------------------------------------------------
 @app.route("/api/vehicles", methods=["GET"])
+@require_auth
+@rate_limit(limit=60, window_seconds=60, key_prefix="vehicles_list")
 def list_vehicles():
     session = get_session()
     try:
         query = session.query(Vehicle).options(joinedload(Vehicle.service_records))
 
-        search_term = request.args.get("q", "").strip()
+        search_term = sanitize_search_query(request.args.get("q", ""))
         if search_term:
             like_pattern = f"%{search_term}%"
             query = query.filter(
@@ -706,25 +713,28 @@ def list_vehicles():
 
 @app.route("/api/vehicles", methods=["POST"])
 @require_auth
+@rate_limit(limit=20, window_seconds=60, key_prefix="vehicle_create")
 def create_vehicle():
     data = request.get_json() or {}
-    reg_no = data.get("registration_no", "").upper().strip()
-    make = data.get("make", "").strip()
-    model = data.get("model", "").strip()
-    year = data.get("year")
-    current_km = data.get("current_km", 0)
+    raw_reg = data.get("registration_no", "")
+    make = sanitize_text(data.get("make", ""), max_length=100)
+    model = sanitize_text(data.get("model", ""), max_length=100)
     vehicle_type = data.get("vehicle_type", "car").lower()
-    owner_name = data.get("owner_name", "").strip() or None
-    owner_phone = data.get("owner_phone", "").strip() or None
-    vin = data.get("vin", "").strip().upper() or None
+    owner_name = sanitize_text(data.get("owner_name", ""), max_length=150) or None
+    owner_phone = sanitize_text(data.get("owner_phone", ""), max_length=20) or None
+    vin = sanitize_text(data.get("vin", ""), max_length=17).upper() or None
 
-    if year is None:
-        return jsonify({"error": "Year and current KM must be valid numbers"}), 400
-    try:
-        year_val = int(year)
-        km_val = int(current_km)
-    except (ValueError, TypeError):
-        return jsonify({"error": "Year and current KM must be valid numbers"}), 400
+    valid_reg, reg_error, reg_no = validate_registration_no(raw_reg)
+    if not valid_reg:
+        return jsonify({"error": reg_error}), 400
+
+    valid_year, year_error, year_val = validate_integer_range(data.get("year"), "Year", 1900, 2030)
+    if not valid_year:
+        return jsonify({"error": year_error}), 400
+
+    valid_km, km_error, km_val = validate_integer_range(data.get("current_km", 0), "Current KM", 0, 2000000, default=0)
+    if not valid_km:
+        return jsonify({"error": km_error}), 400
 
     session = get_session()
     try:
@@ -760,6 +770,7 @@ def create_vehicle():
 # ---------------------------------------------------------------------------
 @app.route("/api/services", methods=["POST"])
 @require_auth
+@rate_limit(limit=20, window_seconds=60, key_prefix="service_create")
 def create_service():
     """
     Creates a new service entry.
@@ -768,26 +779,22 @@ def create_service():
     Computes predictive next_service_km (+15,000 for cars, +3,000 for motorcycles).
     """
     data = request.get_json() or {}
-    reg_no = data.get("registration_no", "").upper().strip()
-    make = data.get("make", "").strip()
-    model = data.get("model", "").strip()
+    raw_reg = data.get("registration_no", "")
+    make = sanitize_text(data.get("make", ""), max_length=100)
+    model = sanitize_text(data.get("model", ""), max_length=100)
     year = data.get("year")
     
-    raw_km = data.get("current_km")
-    if raw_km is None:
-        return jsonify({"error": "Registration number and valid current odometer KM are required"}), 400
-    try:
-        km_at_service = int(raw_km)
-    except (ValueError, TypeError):
-        return jsonify({"error": "Registration number and valid current odometer KM are required"}), 400
+    valid_reg, reg_error, reg_no = validate_registration_no(raw_reg)
+    if not valid_reg:
+        return jsonify({"error": reg_error}), 400
 
-    try:
-        labor_cost = int(data.get("labor_cost", 0))
-    except (ValueError, TypeError):
-        labor_cost = 0
+    valid_km, km_error, km_at_service = validate_integer_range(data.get("current_km"), "Current odometer KM", 0, 2000000)
+    if not valid_km:
+        return jsonify({"error": km_error}), 400
 
+    _, _, labor_cost = validate_integer_range(data.get("labor_cost", 0), "Labor cost", 0, 10000000, default=0)
     vehicle_type = data.get("vehicle_type", "car").lower()
-    mechanic_notes = data.get("notes", "").strip() or None
+    mechanic_notes = sanitize_text(data.get("notes", ""), max_length=2000) or None
     
     raw_part_ids = data.get("part_ids", [])
     selected_part_ids = []
@@ -911,11 +918,17 @@ def create_service():
 
 
 @app.route("/api/services/history", methods=["GET"])
+@require_auth
+@rate_limit(limit=60, window_seconds=60, key_prefix="services_history")
 def get_service_history():
     """
     Searchable service history table.
     Supports query parameters: ?q=search_term
     """
+    user_payload = request.user  # type: ignore
+    user_id = user_payload.get("user_id", 1)
+    role = user_payload.get("role", "mechanic")
+
     session = get_session()
     try:
         query = session.query(ServiceRecord).options(
@@ -923,6 +936,9 @@ def get_service_history():
             joinedload(ServiceRecord.mechanic),
             joinedload(ServiceRecord.line_items),
         )
+
+        if role != "admin":
+            query = query.filter(ServiceRecord.mechanic_id == user_id)
 
         search_term = request.args.get("q", "").strip()
         if search_term:
@@ -957,8 +973,14 @@ def get_service_history():
 
 
 @app.route("/api/services/<int:service_id>", methods=["GET"])
+@require_auth
+@rate_limit(limit=60, window_seconds=60, key_prefix="service_receipt")
 def get_service_receipt(service_id):
     """Single receipt view by ID."""
+    user_payload = request.user  # type: ignore
+    user_id = user_payload.get("user_id", 1)
+    role = user_payload.get("role", "mechanic")
+
     session = get_session()
     try:
         record = session.query(ServiceRecord).options(
@@ -969,6 +991,9 @@ def get_service_receipt(service_id):
 
         if not record:
             return jsonify({"error": "Service record not found"}), 404
+            
+        if record.mechanic_id != user_id and role != "admin":
+            return jsonify({"error": "Forbidden: You do not have permission to view this record"}), 403
 
         receipt = {
             "id": record.id,
@@ -1019,6 +1044,7 @@ def delete_service_record(service_id):
 # Parts Pricing & Inventory Endpoints (Admin console)
 # ---------------------------------------------------------------------------
 @app.route("/api/parts", methods=["GET"])
+@require_auth
 def list_parts():
     session = get_session()
     try:
@@ -1193,6 +1219,7 @@ SENSITIVE_SETTINGS = {"admin_key", "jwt_secret", "encryption_key"}
 
 
 @app.route("/api/settings/<key>", methods=["GET"])
+@require_auth
 def get_setting(key):
     # Protect sensitive settings — requires admin role
     if key in SENSITIVE_SETTINGS:
@@ -1401,6 +1428,7 @@ def get_public_base_url() -> str:
 # QR Vehicle Passport — §8.1 (server-side QR generation)
 # ---------------------------------------------------------------------------
 @app.route("/api/vehicles/<path:reg_no>/qr", methods=["GET"])
+@rate_limit(limit=30, window_seconds=60, key_prefix="qr_gen")
 def generate_vehicle_qr(reg_no):
     """
     Generates a QR code image encoding the public tracking URL for this vehicle.
@@ -1451,6 +1479,7 @@ def generate_vehicle_qr(reg_no):
 # Public Vehicle Tracking Data — §8.1 / §8.6 (no auth required)
 # ---------------------------------------------------------------------------
 @app.route("/api/track/<path:reg_no>", methods=["GET"])
+@rate_limit(limit=60, window_seconds=60, key_prefix="track_public")
 def get_vehicle_passport(reg_no):
     """
     Public read-only endpoint for QR passport pages.
@@ -1515,6 +1544,8 @@ def get_vehicle_passport(reg_no):
 # VIN Auto-Decode — §8.2 (free NHTSA vPIC API)
 # ---------------------------------------------------------------------------
 @app.route("/api/vin-decode", methods=["POST"])
+@require_auth
+@rate_limit(limit=15, window_seconds=60, key_prefix="vin_decode")
 def vin_decode():
     """
     Optional VIN lookup using the free NHTSA vPIC API.
@@ -1573,6 +1604,8 @@ def vin_decode():
 # Registration Plate OCR — §8.3 (pytesseract, open-source Tesseract)
 # ---------------------------------------------------------------------------
 @app.route("/api/ocr/plate", methods=["POST"])
+@require_auth
+@rate_limit(limit=10, window_seconds=60, key_prefix="ocr_plate")
 def ocr_plate():
     """
     Accepts an image file (camera capture or upload), runs Tesseract OCR,
@@ -1627,6 +1660,7 @@ def ocr_plate():
 # ---------------------------------------------------------------------------
 @app.route("/api/services/<int:service_id>/photos", methods=["POST"])
 @require_auth
+@rate_limit(limit=10, window_seconds=60, key_prefix="photo_upload")
 def upload_service_photo(service_id):
     """
     Uploads a before/after photo for a service record.
@@ -1638,17 +1672,26 @@ def upload_service_photo(service_id):
     if "photo" not in request.files:
         return jsonify({"error": "No photo file provided. Send as 'photo' form field."}), 400
 
+    photo_file = request.files["photo"]
+    valid_img, img_error, safe_name = validate_image_file(photo_file)
+    if not valid_img:
+        return jsonify({"error": f"Invalid photo upload: {img_error}"}), 400
+
     photo_type = request.form.get("photo_type", "before")
     if photo_type not in ("before", "after"):
         return jsonify({"error": "photo_type must be 'before' or 'after'"}), 400
-
-    photo_file = request.files["photo"]
 
     session = get_session()
     try:
         record = session.query(ServiceRecord).filter_by(id=service_id).first()
         if not record:
             return jsonify({"error": "Service record not found"}), 404
+            
+        user_payload = request.user  # type: ignore
+        user_id = user_payload.get("user_id", 1)
+        role = user_payload.get("role", "mechanic")
+        if record.mechanic_id != user_id and role != "admin":
+            return jsonify({"error": "Forbidden: Cannot upload photos to another user's record"}), 403
 
         # Save file locally for development; production should use Vercel Blob / S3
         upload_dir = os.path.join(os.path.dirname(__file__), "..", "uploads", "photos")
@@ -1687,12 +1730,24 @@ def upload_service_photo(service_id):
 
 
 @app.route("/api/services/<int:service_id>/photos", methods=["GET"])
+@require_auth
 def get_service_photos(service_id):
     """Returns all photos attached to a service record."""
     from api.models import ServicePhoto
 
+    user_payload = request.user  # type: ignore
+    user_id = user_payload.get("user_id", 1)
+    role = user_payload.get("role", "mechanic")
+
     session = get_session()
     try:
+        record = session.query(ServiceRecord).filter_by(id=service_id).first()
+        if not record:
+            return jsonify({"error": "Service record not found"}), 404
+            
+        if record.mechanic_id != user_id and role != "admin":
+            return jsonify({"error": "Forbidden: Cannot view photos for another user's record"}), 403
+
         photos = session.query(ServicePhoto).filter_by(
             service_record_id=service_id
         ).order_by(ServicePhoto.uploaded_at).all()
@@ -1720,8 +1775,26 @@ def get_service_photos(service_id):
 # this keeps receipt photo attachment working in both environments.
 # ---------------------------------------------------------------------------
 @app.route("/uploads/photos/<path:filename>", methods=["GET"])
+@require_auth
 def serve_service_photo(filename):
     """Serves an uploaded service photo file from the local photos directory."""
+    from api.models import ServicePhoto
+    
+    user_payload = request.user  # type: ignore
+    user_id = user_payload.get("user_id", 1)
+    role = user_payload.get("role", "mechanic")
+    
+    session = get_session()
+    try:
+        photo_url = f"/uploads/photos/{filename}"
+        photo = session.query(ServicePhoto).filter_by(photo_url=photo_url).first()
+        if photo:
+            record = session.query(ServiceRecord).filter_by(id=photo.service_record_id).first()
+            if record and record.mechanic_id != user_id and role != "admin":
+                return jsonify({"error": "Forbidden: You do not have permission to view this photo"}), 403
+    finally:
+        session.close()
+
     upload_dir = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "..", "uploads", "photos"
     )
