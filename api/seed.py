@@ -133,24 +133,34 @@ def seed():
     # ------------------------------------------------------------------
     existing_users = session.query(User).count()
     if existing_users == 0:
+        from api.auth import hash_password
         users = [
             User(
                 name="Admin Amaan",
                 email="admin@gearify.pk",
-                password_hash=generate_password_hash("admin123"),
+                password_hash=hash_password("admin123"),
                 role="admin",
+                is_verified=True,
+                token_version=1,
+                failed_login_attempts=0,
             ),
             User(
                 name="Mechanic Hamid",
                 email="hamid@gearify.pk",
-                password_hash=generate_password_hash("mech123"),
+                password_hash=hash_password("mech123"),
                 role="mechanic",
+                is_verified=True,
+                token_version=1,
+                failed_login_attempts=0,
             ),
             User(
                 name="Mechanic Ali",
                 email="ali@gearify.pk",
-                password_hash=generate_password_hash("mech456"),
+                password_hash=hash_password("mech456"),
                 role="mechanic",
+                is_verified=True,
+                token_version=1,
+                failed_login_attempts=0,
             ),
         ]
         session.add_all(users)

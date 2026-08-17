@@ -37,7 +37,7 @@ export default function LoginPage() {
       }
 
       if (!res.ok) {
-        throw new Error(data.error || "Login failed");
+        throw new Error(data.detail || data.error || "Login failed");
       }
 
       if (data.token) {
@@ -140,12 +140,21 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label
-                className="block text-xs font-bold uppercase tracking-wider mb-1.5"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label
+                  className="block text-xs font-bold uppercase tracking-wider"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-semibold hover:underline"
+                  style={{ color: "var(--accent)" }}
+                >
+                  Forgot Password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock
                   className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2"

@@ -30,7 +30,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
-    email = Column(String(255), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     role = Column(
         String(20),
@@ -38,6 +38,14 @@ class User(Base):
         nullable=False,
         default="mechanic",
     )
+    is_verified = Column(Boolean, nullable=False, default=False)
+    verification_token_hash = Column(String(64), nullable=True)
+    verification_token_expires_at = Column(DateTime, nullable=True)
+    reset_token_hash = Column(String(64), nullable=True)
+    reset_token_expires_at = Column(DateTime, nullable=True)
+    failed_login_attempts = Column(Integer, nullable=False, default=0)
+    locked_until = Column(DateTime, nullable=True)
+    token_version = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationships
@@ -49,6 +57,7 @@ class User(Base):
             "name": self.name,
             "email": self.email,
             "role": self.role,
+            "is_verified": bool(getattr(self, "is_verified", False)),
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
@@ -290,10 +299,40 @@ def get_session():
     Session = sessionmaker(bind=engine)
     return Session()
 
+def _ensure_user_schema(engine):
+    """Defensively ensures new security columns exist in pre-existing databases."""
+    try:
+        # pyrefly: ignore [missing-import]
+        from sqlalchemy import inspect, text
+        inspector = inspect(engine)
+        if "users" in inspector.get_table_names():
+            columns = [c["name"] for c in inspector.get_columns("users")]
+            with engine.begin() as conn:
+                if "is_verified" not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT 1"))
+                if "verification_token_hash" not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN verification_token_hash VARCHAR(64)"))
+                if "verification_token_expires_at" not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN verification_token_expires_at TIMESTAMP"))
+                if "reset_token_hash" not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_hash VARCHAR(64)"))
+                if "reset_token_expires_at" not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires_at TIMESTAMP"))
+                if "failed_login_attempts" not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0"))
+                if "locked_until" not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN locked_until TIMESTAMP"))
+                if "token_version" not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN token_version INTEGER DEFAULT 1"))
+    except Exception as e:
+        print(f"Schema migration check notice: {e}")
+
+
 def init_db():
     """Creates all tables if they don't exist and auto-seeds initial data. Safe to call on cold start."""
     engine = get_engine()
     Base.metadata.create_all(engine)
+    _ensure_user_schema(engine)
 
     try:
         Session = sessionmaker(bind=engine)

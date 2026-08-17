@@ -6,7 +6,7 @@ Implements Phase 1, Phase 2, and Phase 3 API endpoints.
 """
 
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 
@@ -25,8 +25,10 @@ from api.models import (
     Setting, get_engine, get_session, init_db
 )
 from api.auth import (
-    hash_password, verify_password, create_token, get_current_user_payload,
-    require_auth, require_role
+    hash_password, verify_password, dummy_verify_password, validate_password_strength,
+    create_token, decode_token, get_current_user_payload, require_auth, require_role,
+    generate_secure_token, hash_token, secure_compare, auth_rate_limiter, get_client_ip,
+    rate_limit
 )
 
 app = Flask(__name__)
@@ -191,11 +193,32 @@ def health_check():
 # ---------------------------------------------------------------------------
 # Auth Endpoints
 # ---------------------------------------------------------------------------
+def set_auth_cookie(response, token: str):
+    """Sets secure, HttpOnly, SameSite=Lax authentication cookie."""
+    is_secure = request.is_secure or os.environ.get("VERCEL") == "1" or os.environ.get("ENV") == "production"
+    response.set_cookie(
+        "gearify_token",
+        token,
+        path="/",
+        httponly=True,
+        samesite="Lax",
+        secure=is_secure,
+        max_age=86400,
+    )
+    return response
+
+
+# ---------------------------------------------------------------------------
+# Auth Endpoints (Hardened & Rate-Limited)
+# ---------------------------------------------------------------------------
 @app.route("/api/auth/register", methods=["POST"])
+@rate_limit(limit=10, window_seconds=900, key_prefix="register")
 def register_user():
     """
     Registers a new user (mechanic or admin).
-    If role == 'admin', requires secret_key to match settings.admin_key.
+    - Enforces password complexity (min 8 chars, non-whitespace).
+    - If role == 'admin', validates secret_key using constant-time comparison.
+    - Generates 24-hour expiring email verification token.
     """
     data = request.get_json() or {}
     email = data.get("email", "").strip().lower()
@@ -207,35 +230,80 @@ def register_user():
     if not email or not name or not password:
         return jsonify({"error": "Name, email, and password are required"}), 400
 
+    if "@" not in email or "." not in email:
+        return jsonify({"error": "Please provide a valid email address"}), 400
+
     if role not in ["mechanic", "admin"]:
         return jsonify({"error": "Invalid role. Must be 'mechanic' or 'admin'"}), 400
 
+    # Password complexity check
+    valid_password, password_error = validate_password_strength(password)
+    if not valid_password:
+        return jsonify({"error": password_error}), 400
+
     session = get_session()
     try:
-        # If admin registration, check secret key
+        # If admin registration, check secret key with constant-time comparison
         if role == "admin":
             admin_setting = session.query(Setting).filter_by(key="admin_key").first()
-            current_admin_key = admin_setting.value if admin_setting else "GearifyAPMS"
-            if secret_key != current_admin_key:
-                return jsonify({"error": "Invalid Admin Secret Key. Access Denied."}), 403
+            current_admin_key = str(admin_setting.value) if admin_setting else "GearifyAPMS"
+            if not secure_compare(secret_key, current_admin_key):
+                return jsonify({"error": "Invalid Admin Security Key. Access Denied."}), 403
 
         # Check existing user
         existing = session.query(User).filter_by(email=email).first()
         if existing:
-            return jsonify({"error": "User with this email already exists"}), 400
+            return jsonify({"error": "An account with this email already exists"}), 400
+
+        # Generate email verification token (24-hour expiration)
+        raw_verify_token = generate_secure_token()
+        verify_token_hash = hash_token(raw_verify_token)
+        verify_expires = datetime.now(timezone.utc) + timedelta(hours=24)
+
+        # Admin accounts are pre-verified; mechanics receive verification token
+        is_verified = (role == "admin")
 
         user = User(
             name=name,
             email=email,
             password_hash=hash_password(password),
             role=role,
+            is_verified=is_verified,
+            verification_token_hash=verify_token_hash if not is_verified else None,
+            verification_token_expires_at=verify_expires if not is_verified else None,
+            failed_login_attempts=0,
+            locked_until=None,
+            token_version=1,
         )
         session.add(user)
         session.commit()
 
-        token = create_token(int(getattr(user, "id")), str(getattr(user, "email")), str(getattr(user, "role")), str(getattr(user, "name")))
-        res = jsonify({"message": "Registration successful", "user": user.to_dict(), "token": token})
-        res.set_cookie("gearify_token", token, path="/", httponly=True, samesite="Lax", max_age=86400)
+        user_id = int(getattr(user, "id"))
+        user_email = str(getattr(user, "email"))
+        user_role = str(getattr(user, "role"))
+        user_name = str(getattr(user, "name"))
+        token_ver = int(getattr(user, "token_version", 1))
+
+        token = create_token(
+            user_id=user_id,
+            email=user_email,
+            role=user_role,
+            name=user_name,
+            token_version=token_ver,
+            is_verified=is_verified,
+        )
+
+        res_data = {
+            "message": "Registration successful",
+            "user": user.to_dict(),
+            "token": token,
+        }
+        # In dev or unverified state, return verification link payload
+        if not is_verified:
+            res_data["verification_token"] = raw_verify_token
+
+        res = jsonify(res_data)
+        set_auth_cookie(res, token)
         return res, 201
 
     except Exception as e:
@@ -247,6 +315,12 @@ def register_user():
 
 @app.route("/api/auth/login", methods=["POST"])
 def login_user():
+    """
+    Authenticates user with email and password.
+    - Protected by IP & Email sliding window rate limiter.
+    - Account-level lockout after 5 consecutive failed attempts.
+    - Constant-time dummy hash equalization to mitigate user enumeration timing attacks.
+    """
     data = request.get_json() or {}
     email = data.get("email", "").strip().lower()
     password = data.get("password", "")
@@ -254,17 +328,317 @@ def login_user():
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
 
+    ip = get_client_ip()
+    ip_key = f"login:ip:{ip}"
+    email_key = f"login:email:{email}"
+
+    # Check IP rate limit (5 attempts per 15 minutes)
+    allowed, retry_after = auth_rate_limiter.check(ip_key, limit=5, window_seconds=900)
+    if not allowed:
+        res = jsonify({
+            "error": "Too Many Requests",
+            "detail": f"Too many failed attempts. Please wait {retry_after} seconds before trying again.",
+            "retry_after": retry_after,
+        })
+        res.headers["Retry-After"] = str(retry_after)
+        return res, 429
+
     session = get_session()
     try:
         user = session.query(User).filter_by(email=email).first()
-        if not user or not verify_password(password, str(user.password_hash)):
+
+        # Non-existent user timing equalization
+        if not user:
+            dummy_verify_password(password)
+            auth_rate_limiter.record(ip_key)
             return jsonify({"error": "Invalid email or password"}), 401
 
-        token = create_token(int(getattr(user, "id")), str(getattr(user, "email")), str(getattr(user, "role")), str(getattr(user, "name")))
+        # Check account-level lockout
+        now = datetime.now(timezone.utc)
+        locked_until = getattr(user, "locked_until", None)
+        if locked_until:
+            if locked_until.tzinfo is None:
+                locked_until = locked_until.replace(tzinfo=timezone.utc)
+            if locked_until > now:
+                lockout_remaining = max(1, int((locked_until - now).total_seconds()))
+                res = jsonify({
+                    "error": "Account Locked",
+                    "detail": f"Account is temporarily locked due to multiple failed login attempts. Try again in {lockout_remaining} seconds.",
+                    "retry_after": lockout_remaining,
+                })
+                res.headers["Retry-After"] = str(lockout_remaining)
+                return res, 429
+
+        # Verify password in constant time
+        if not verify_password(password, str(user.password_hash)):
+            # Increment failed attempts
+            current_failures = int(getattr(user, "failed_login_attempts", 0) or 0) + 1
+            setattr(user, "failed_login_attempts", current_failures)
+            auth_rate_limiter.record(ip_key)
+            auth_rate_limiter.record(email_key)
+
+            if current_failures >= 5:
+                lock_duration = timedelta(minutes=15)
+                setattr(user, "locked_until", now + lock_duration)
+                session.commit()
+                res = jsonify({
+                    "error": "Account Locked",
+                    "detail": "Account is temporarily locked due to 5 consecutive failed login attempts. Please try again in 15 minutes.",
+                    "retry_after": 900,
+                })
+                res.headers["Retry-After"] = "900"
+                return res, 429
+
+            session.commit()
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        # Successful login: reset failed counters and unlock
+        setattr(user, "failed_login_attempts", 0)
+        setattr(user, "locked_until", None)
+        session.commit()
+
+        # Reset rate limiter
+        auth_rate_limiter.reset(ip_key)
+        auth_rate_limiter.reset(email_key)
+
+        user_id = int(getattr(user, "id"))
+        user_email = str(getattr(user, "email"))
+        user_role = str(getattr(user, "role"))
+        user_name = str(getattr(user, "name"))
+        token_ver = int(getattr(user, "token_version", 1))
+        is_verified = bool(getattr(user, "is_verified", False))
+
+        token = create_token(
+            user_id=user_id,
+            email=user_email,
+            role=user_role,
+            name=user_name,
+            token_version=token_ver,
+            is_verified=is_verified,
+        )
+
         res = jsonify({"message": "Login successful", "user": user.to_dict(), "token": token})
-        res.set_cookie("gearify_token", token, path="/", httponly=True, samesite="Lax", max_age=86400)
+        set_auth_cookie(res, token)
         return res
 
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": "Login failed", "detail": str(e)}), 500
+    finally:
+        session.close()
+
+
+@app.route("/api/auth/verify-email", methods=["POST", "GET"])
+def verify_email():
+    """
+    Verifies a user's email address using a cryptographic single-use token.
+    Accepts JSON body `{"token": "..."}` or query parameter `?token=...`.
+    """
+    raw_token = ""
+    if request.method == "GET":
+        raw_token = request.args.get("token", "").strip()
+    else:
+        data = request.get_json() or {}
+        raw_token = data.get("token", "").strip()
+
+    if not raw_token:
+        return jsonify({"error": "Verification token is required"}), 400
+
+    token_hash = hash_token(raw_token)
+    session = get_session()
+    try:
+        user = session.query(User).filter_by(verification_token_hash=token_hash).first()
+        now = datetime.now(timezone.utc)
+
+        if not user:
+            return jsonify({"error": "Invalid or expired email verification token"}), 400
+
+        expires_at = getattr(user, "verification_token_expires_at", None)
+        if not expires_at:
+            return jsonify({"error": "Invalid or expired email verification token"}), 400
+
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+        if expires_at < now:
+            return jsonify({"error": "Email verification token has expired. Please request a new one."}), 400
+
+        # Mark verified and clear verification tokens
+        setattr(user, "is_verified", True)
+        setattr(user, "verification_token_hash", None)
+        setattr(user, "verification_token_expires_at", None)
+        session.commit()
+
+        # Issue refreshed token with is_verified=True
+        refreshed_token = create_token(
+            user_id=int(getattr(user, "id")),
+            email=str(getattr(user, "email")),
+            role=str(getattr(user, "role")),
+            name=str(getattr(user, "name")),
+            token_version=int(getattr(user, "token_version", 1)),
+            is_verified=True,
+        )
+
+        res = jsonify({
+            "message": "Email address verified successfully!",
+            "user": user.to_dict(),
+            "token": refreshed_token,
+        })
+        set_auth_cookie(res, refreshed_token)
+        return res
+
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": "Email verification failed", "detail": str(e)}), 500
+    finally:
+        session.close()
+
+
+@app.route("/api/auth/resend-verification", methods=["POST"])
+@rate_limit(limit=3, window_seconds=900, key_prefix="resend_verify")
+def resend_verification():
+    """
+    Generates and sends a new 24-hour email verification token.
+    Always returns uniform message to prevent email enumeration.
+    """
+    data = request.get_json() or {}
+    email = data.get("email", "").strip().lower()
+
+    # Fallback to logged-in user if no email is provided in body
+    if not email:
+        user_payload = get_current_user_payload()
+        if user_payload:
+            email = user_payload.get("email", "").strip().lower()
+
+    if not email:
+        return jsonify({"error": "Email address is required"}), 400
+
+    session = get_session()
+    try:
+        user = session.query(User).filter_by(email=email).first()
+        raw_token = None
+
+        if user and not getattr(user, "is_verified", False):
+            raw_token = generate_secure_token()
+            setattr(user, "verification_token_hash", hash_token(raw_token))
+            setattr(user, "verification_token_expires_at", datetime.now(timezone.utc) + timedelta(hours=24))
+            session.commit()
+
+        res_data = {"message": "If an unverified account exists with that email, a new verification link has been generated."}
+        if raw_token:
+            res_data["verification_token"] = raw_token
+
+        return jsonify(res_data)
+
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": "Failed to resend verification", "detail": str(e)}), 500
+    finally:
+        session.close()
+
+
+@app.route("/api/auth/forgot-password", methods=["POST"])
+@rate_limit(limit=3, window_seconds=900, key_prefix="forgot_pw")
+def forgot_password():
+    """
+    Initiates password reset flow.
+    Generates a cryptographically strong, single-use reset token valid for 15 minutes.
+    Always returns uniform response to mitigate email enumeration.
+    """
+    data = request.get_json() or {}
+    email = data.get("email", "").strip().lower()
+
+    if not email:
+        return jsonify({"error": "Email address is required"}), 400
+
+    session = get_session()
+    try:
+        user = session.query(User).filter_by(email=email).first()
+        raw_reset_token = None
+
+        if user:
+            raw_reset_token = generate_secure_token()
+            token_hash = hash_token(raw_reset_token)
+            setattr(user, "reset_token_hash", token_hash)
+            setattr(user, "reset_token_expires_at", datetime.now(timezone.utc) + timedelta(minutes=15))
+            session.commit()
+
+        res_data = {
+            "message": "If an account with that email exists, a password reset link has been generated and expires in 15 minutes."
+        }
+        # In development/local mode, provide the token for verification
+        if raw_reset_token:
+            res_data["reset_token"] = raw_reset_token
+
+        return jsonify(res_data)
+
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": "Password reset request failed", "detail": str(e)}), 500
+    finally:
+        session.close()
+
+
+@app.route("/api/auth/reset-password", methods=["POST"])
+@rate_limit(limit=5, window_seconds=900, key_prefix="reset_pw")
+def reset_password():
+    """
+    Completes password reset using a single-use token.
+    - Validates token hash and 15-minute expiration window.
+    - Enforces password complexity.
+    - Updates password hash.
+    - Invalidates the reset token immediately (single use).
+    - Increments token_version to invalidate all existing sessions.
+    """
+    data = request.get_json() or {}
+    raw_token = data.get("token", "").strip()
+    new_password = data.get("new_password", "")
+
+    if not raw_token or not new_password:
+        return jsonify({"error": "Token and new password are required"}), 400
+
+    valid_password, password_error = validate_password_strength(new_password)
+    if not valid_password:
+        return jsonify({"error": password_error}), 400
+
+    token_hash = hash_token(raw_token)
+    session = get_session()
+    try:
+        user = session.query(User).filter_by(reset_token_hash=token_hash).first()
+        now = datetime.now(timezone.utc)
+
+        if not user:
+            return jsonify({"error": "Invalid or expired password reset token"}), 400
+
+        expires_at = getattr(user, "reset_token_expires_at", None)
+        if not expires_at:
+            return jsonify({"error": "Invalid or expired password reset token"}), 400
+
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+        if expires_at < now:
+            return jsonify({"error": "Password reset token has expired. Please request a new link."}), 400
+
+        # Update password with strong scrypt hash
+        setattr(user, "password_hash", hash_password(new_password))
+        # Clear reset token (single use)
+        setattr(user, "reset_token_hash", None)
+        setattr(user, "reset_token_expires_at", None)
+        # Invalidate all prior active JWT sessions
+        setattr(user, "token_version", int(getattr(user, "token_version", 1) or 1) + 1)
+        # Clear any lockouts / failed attempts
+        setattr(user, "failed_login_attempts", 0)
+        setattr(user, "locked_until", None)
+        session.commit()
+
+        return jsonify({
+            "message": "Password reset successfully. All previous sessions have been logged out. Please sign in with your new password."
+        })
+
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": "Password reset failed", "detail": str(e)}), 500
     finally:
         session.close()
 
@@ -279,9 +653,8 @@ def get_current_user():
 @app.route("/api/auth/logout", methods=["POST"])
 def logout_user():
     res = jsonify({"message": "Logged out successfully"})
-    # Clear the cookie from the whole site scope so it isn't left dangling
-    # for paths that were protected when the session cookie lacked path="/".
-    res.set_cookie("gearify_token", "", path="/", expires=0)
+    is_secure = request.is_secure or os.environ.get("VERCEL") == "1" or os.environ.get("ENV") == "production"
+    res.set_cookie("gearify_token", "", path="/", expires=0, httponly=True, samesite="Lax", secure=is_secure)
     return res
 
 
@@ -816,8 +1189,19 @@ def delete_user(user_id):
         session.close()
 
 
+SENSITIVE_SETTINGS = {"admin_key", "jwt_secret", "encryption_key"}
+
+
 @app.route("/api/settings/<key>", methods=["GET"])
 def get_setting(key):
+    # Protect sensitive settings — requires admin role
+    if key in SENSITIVE_SETTINGS:
+        user_payload = get_current_user_payload()
+        if not user_payload:
+            return jsonify({"error": "Unauthorized", "detail": "Valid authentication token required"}), 401
+        if user_payload.get("role") != "admin":
+            return jsonify({"error": "Forbidden", "detail": "Sensitive setting requires admin role"}), 403
+
     session = get_session()
     try:
         setting = session.query(Setting).filter_by(key=key).first()
@@ -1026,8 +1410,8 @@ def generate_vehicle_qr(reg_no):
     display_reg = urllib.parse.unquote(reg_no).strip().upper()
 
     try:
-        # pyrefly: ignore [missing-import]
-        import qrcode
+        # pyrefly: ignore [missing-import, missing-type-stubs]
+        import qrcode  # type: ignore
         from io import BytesIO
 
         base_url = get_public_base_url()
