@@ -85,14 +85,14 @@ export default function RegisterPage() {
         >
           {/* Decorative Top Accent Line */}
           <div
-            className="absolute top-0 left-0 right-0 h-1.5"
-            style={{ background: "linear-gradient(90deg, var(--accent), var(--accent-secondary))" }}
+            className="absolute top-0 left-0 right-0 h-1"
+            style={{ backgroundColor: "var(--accent)" }}
           />
 
           <div className="text-center mb-6">
             <div
               className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg"
-              style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-secondary))" }}
+              style={{ backgroundColor: "var(--accent)" }}
             >
               <Wrench className="w-6 h-6 text-white" />
             </div>

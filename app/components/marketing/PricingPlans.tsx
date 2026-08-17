@@ -35,7 +35,7 @@ const PLANS: Plan[] = [
     ],
     ctaLabel: "Deploy Free Terminal",
     ctaHref: "/register",
-    accent: "#38bdf8",
+    accent: "var(--accent)",
   },
   {
     id: "pro",
@@ -72,7 +72,7 @@ const PLANS: Plan[] = [
     ],
     ctaLabel: "Contact Enterprise Team",
     ctaHref: "/register",
-    accent: "#c084fc",
+    accent: "var(--accent-secondary)",
   },
 ];
 

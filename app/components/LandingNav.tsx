@@ -50,7 +50,7 @@ export default function LandingNav() {
         <div className="flex items-center justify-between">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[var(--accent)] to-[var(--accent-secondary)] flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: "var(--accent)" }}>
               <Wrench className="w-4 h-4 text-white" />
             </div>
             <div className="flex items-center gap-1.5">

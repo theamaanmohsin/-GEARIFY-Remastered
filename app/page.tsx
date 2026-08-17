@@ -12,7 +12,7 @@ import MarketingContactCTA from "./components/marketing/MarketingContactCTA";
 
 export default function MarketingPage() {
   return (
-    <div className="relative min-h-screen flex flex-col selection:bg-sky-500/20 selection:text-sky-400">
+    <div className="relative min-h-screen flex flex-col selection:bg-zinc-900/15 selection:text-zinc-900 dark:selection:bg-sky-400/20 dark:selection:text-sky-300">
       {/* Navigation Header */}
       <LandingNav />
 

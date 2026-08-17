@@ -15,6 +15,7 @@ interface GlowParticle {
 
 // Dark mode luminous neon palette
 const DARK_PALETTE: Record<string, string> = {
+  charcoal: "#38bdf8",
   cyan: "#38bdf8",
   emerald: "#10b981",
   amber: "#fbbf24",
@@ -22,13 +23,14 @@ const DARK_PALETTE: Record<string, string> = {
   violet: "#c084fc",
 };
 
-// Light mode high-contrast pigment palette
+// Light mode high-contrast neutral pigment palette
 const LIGHT_PALETTE: Record<string, string> = {
-  cyan: "#0284c7",
+  charcoal: "#18181b",
+  cyan: "#18181b",
   emerald: "#059669",
   amber: "#d97706",
   rose: "#e11d48",
-  violet: "#7c3aed",
+  violet: "#52525b",
 };
 
 export default function DynamicCursorTrail() {
@@ -62,7 +64,7 @@ export default function DynamicCursorTrail() {
     window.addEventListener("resize", handleResize);
 
     const particles: GlowParticle[] = [];
-    let currentColorKey = "cyan";
+    let currentColorKey = "charcoal";
 
     // Detect section or UI context color from element under cursor
     const updateActiveColorKey = (e: MouseEvent) => {
@@ -72,7 +74,7 @@ export default function DynamicCursorTrail() {
       // 1. Direct data attribute
       const section = el.closest("[data-trail-color]");
       if (section) {
-        const key = section.getAttribute("data-trail-color") || "cyan";
+        const key = section.getAttribute("data-trail-color") || "charcoal";
         if (DARK_PALETTE[key]) {
           currentColorKey = key;
           return;
@@ -94,13 +96,9 @@ export default function DynamicCursorTrail() {
           currentColorKey = "emerald";
           return;
         }
-        if (classList.includes("purple") || classList.includes("violet")) {
-          currentColorKey = "violet";
-          return;
-        }
       }
 
-      currentColorKey = "cyan";
+      currentColorKey = "charcoal";
     };
 
     let lastX = 0;

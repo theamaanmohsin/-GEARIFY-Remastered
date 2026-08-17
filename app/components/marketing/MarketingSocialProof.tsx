@@ -49,7 +49,7 @@ export default function MarketingSocialProof() {
   return (
     <section
       id="testimonials"
-      data-trail-color="cyan"
+      data-trail-color="charcoal"
       className="py-24 px-4 sm:px-6 lg:px-12 border-b overflow-hidden"
       style={{
         borderColor: "var(--divider-strong)",

@@ -51,7 +51,7 @@ const FEATURE_SPREADS: FeatureSpread[] = [
   },
   {
     id: "feature-dual-fleet",
-    trailColor: "cyan",
+    trailColor: "charcoal",
     tag: "CAPABILITY 02 / FLEET ARCHITECTURE",
     title: "Unified Motorcycle & Passenger Automotive Support",
     subtitle: "Engineered specifically for mixed mobility: 70cc–150cc motorcycles, passenger sedans, and light commercial vehicles in one terminal.",
@@ -102,7 +102,7 @@ const FEATURE_SPREADS: FeatureSpread[] = [
   },
   {
     id: "feature-rbac",
-    trailColor: "violet",
+    trailColor: "charcoal",
     tag: "CAPABILITY 05 / ACCESS CONTROL",
     title: "Multi-Tier Role Control & Workshop Command Hub",
     subtitle: "Strict separation of concerns between shop floor mechanics, managers, and executive auditors.",
@@ -180,8 +180,8 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
             <span className="font-bold text-emerald-400">96% CLEAN</span>
           </div>
           <div className="p-2 rounded-lg border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
-            <span className="text-slate-400 block">ODOMETER INTERVAL</span>
-            <span className="font-bold text-sky-400">12.4K KM LEFT</span>
+            <span style={{ color: "var(--text-muted)" }} className="block">ODOMETER INTERVAL</span>
+            <span className="font-bold" style={{ color: "var(--text-primary)" }}>12.4K KM LEFT</span>
           </div>
         </div>
       </div>
@@ -195,10 +195,10 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
         <div className="p-4 rounded-2xl border space-y-2" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Car className="w-4 h-4 text-sky-400" />
+              <Car className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />
               <span className="font-bold text-xs font-mono" style={{ color: "var(--text-primary)" }}>PASSENGER CAR REGIME</span>
             </div>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold" style={{ backgroundColor: "var(--accent-muted)", color: "var(--text-secondary)", border: "1px solid var(--card-border)" }}>
               15,000 KM
             </span>
           </div>
@@ -212,10 +212,10 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
         <div className="p-4 rounded-2xl border space-y-2" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Bike className="w-4 h-4 text-purple-400" />
+              <Bike className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />
               <span className="font-bold text-xs font-mono" style={{ color: "var(--text-primary)" }}>MOTORCYCLE REGIME</span>
             </div>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold" style={{ backgroundColor: "var(--accent-muted)", color: "var(--text-secondary)", border: "1px solid var(--card-border)" }}>
               3,000 KM
             </span>
           </div>
@@ -326,20 +326,20 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
       <div className="space-y-2.5">
         <div className="p-3 rounded-xl border flex items-center justify-between font-mono" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
           <div className="flex items-center gap-2.5">
-            <Lock className="w-4 h-4 text-purple-400" />
+            <Lock className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />
             <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>ADMINISTRATOR</span>
           </div>
-          <span className="text-[10px] font-bold text-purple-400 px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ color: "var(--text-secondary)", backgroundColor: "var(--accent-muted)", border: "1px solid var(--card-border)" }}>
             FULL GOVERNANCE
           </span>
         </div>
 
         <div className="p-3 rounded-xl border flex items-center justify-between font-mono" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
           <div className="flex items-center gap-2.5">
-            <Zap className="w-4 h-4 text-sky-400" />
+            <Zap className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />
             <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>WORKSHOP MECHANIC</span>
           </div>
-          <span className="text-[10px] font-bold text-sky-400 px-2 py-0.5 rounded bg-sky-500/10 border border-sky-500/20">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ color: "var(--text-secondary)", backgroundColor: "var(--accent-muted)", border: "1px solid var(--card-border)" }}>
             INTAKE & RECEIPTS
           </span>
         </div>
@@ -356,9 +356,9 @@ function VectorConstruct({ type }: { type: FeatureSpread["illustrationType"] }) 
       </div>
 
       {/* Security Token Status */}
-      <div className="p-3 rounded-xl border text-center font-mono text-[10px]" style={{ backgroundColor: "rgba(192, 132, 252, 0.1)", borderColor: "rgba(192, 132, 252, 0.3)" }}>
-        <span className="text-slate-300">HTTP-ONLY JWT TOKENS · </span>
-        <span className="font-bold text-purple-400">ZERO DATA LEAKAGE</span>
+      <div className="p-3 rounded-xl border text-center font-mono text-[10px]" style={{ backgroundColor: "var(--accent-muted)", borderColor: "var(--card-border)" }}>
+        <span style={{ color: "var(--text-muted)" }}>HTTP-ONLY JWT TOKENS · </span>
+        <span className="font-bold" style={{ color: "var(--text-primary)" }}>ZERO DATA LEAKAGE</span>
       </div>
     </div>
   );

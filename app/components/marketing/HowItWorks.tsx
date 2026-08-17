@@ -11,7 +11,7 @@ const STEPS = [
     title: "Vehicle Intake & Odometer",
     desc: "Technician inputs the plate number, make, model, and current mileage on the terminal.",
     icon: Car,
-    accent: "#38bdf8",
+    accent: "var(--accent)",
   },
   {
     step: "02",
@@ -32,7 +32,7 @@ const STEPS = [
     title: "Continuous Health Telemetry",
     desc: "Automatic 100-point decay tracking alerts the shop and owner when the next service is due.",
     icon: QrCode,
-    accent: "#c084fc",
+    accent: "var(--accent-secondary)",
   },
 ];
 
@@ -42,7 +42,7 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      data-trail-color="cyan"
+      data-trail-color="charcoal"
       className="py-24 px-4 sm:px-6 lg:px-12 border-b overflow-hidden"
       style={{
         borderColor: "var(--divider-strong)",

@@ -36,7 +36,7 @@ export default function MarketingHero() {
 
   return (
     <section
-      data-trail-color="cyan"
+      data-trail-color="charcoal"
       className="relative min-h-[92vh] flex flex-col justify-between pt-32 pb-20 px-4 sm:px-6 lg:px-12 border-b overflow-hidden"
       style={{
         borderColor: "var(--divider-strong)",
@@ -50,7 +50,7 @@ export default function MarketingHero() {
       />
       <div
         className="absolute -bottom-36 -right-36 w-[580px] h-[580px] rounded-full blur-[160px] opacity-25 pointer-events-none"
-        style={{ background: "radial-gradient(circle, var(--accent-secondary), transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, var(--accent-muted), transparent 70%)" }}
       />
 
       {/* Top Header Tag Strip */}

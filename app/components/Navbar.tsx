@@ -79,7 +79,7 @@ export default function Navbar() {
         <Link href="/dashboard" className="flex items-center gap-3 group">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300"
-            style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-secondary))" }}
+            style={{ backgroundColor: "var(--accent)" }}
           >
             <Wrench className="w-5 h-5 text-white" />
           </div>

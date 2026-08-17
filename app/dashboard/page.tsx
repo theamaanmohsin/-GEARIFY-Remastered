@@ -86,9 +86,8 @@ export default function DashboardPage() {
           <div
             className="p-3 rounded-xl"
             style={{
-              background: "linear-gradient(135deg, var(--accent), var(--accent-secondary))",
-              color: "#fff",
-              boxShadow: "0 4px 14px rgba(0,113,227,0.35)",
+              backgroundColor: "#F4F4F5",
+              color: "#18181B",
             }}
           >
             <Car className="w-6 h-6" />

@@ -450,7 +450,7 @@ export default function NewServicePage() {
           </div>
 
           {/* Live Billing Summary Footer Panel */}
-          <div className="glass-panel-glow rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ background: "linear-gradient(135deg, var(--accent-muted), var(--accent-secondary-muted))" }}>
+          <div className="glass-panel-glow rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ background: "var(--accent-muted)" }}>
             <div>
               <span className="text-xs font-bold uppercase tracking-wider block" style={{ color: "var(--text-secondary)" }}>
                 Calculated Grand Total

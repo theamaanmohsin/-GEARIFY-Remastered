@@ -14,7 +14,7 @@ export default function MarketingContactCTA() {
   return (
     <footer
       id="contact"
-      data-trail-color="cyan"
+      data-trail-color="charcoal"
       className="relative pt-24 pb-16 px-4 sm:px-6 lg:px-12 border-t overflow-hidden"
       style={{
         borderColor: "var(--divider-strong)",

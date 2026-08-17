@@ -3,91 +3,52 @@
 @layer base {
   :root {
     /* ═══════════════════════════════════════════════════
-       LIGHT THEME — Google Antigravity Design Token System
-       Live-extracted tokens from antigravity.google:
-       - Surface container layering (#ffffff / #f8f9fc / #eff2f7 / #e6eaf0)
-       - On-surface text (#121317 / #45474d) for reduced harshness
-       - Single vivid primary accent (#3279f9 / hover #1b66ea)
-       - Low-contrast outline-variant neutral borders (rgba(33, 34, 38, 0.08))
-       - Pill-shaped buttons (border-radius: 999px)
+       LIGHT THEME — Neutral Charcoal / Zinc Monochrome
+       No blue, no purple, no cyan. Color appears only in
+       the status system (emerald/amber/rose).
+       Ink-stamp brand identity: charcoal marks on warm off-white.
     ═══════════════════════════════════════════════════ */
-    /* Core Material 3 Palette */
-    --palette-grey-0: #ffffff;
-    --palette-grey-10: #f8f9fc;
-    --palette-grey-15: #f0f1f5;
-    --palette-grey-20: #eff2f7;
-    --palette-grey-50: #e6eaf0;
-    --palette-grey-100: #e1e6ec;
-    --palette-grey-200: #cdd4dc;
-    --palette-grey-300: #b2bbc5;
-    --palette-grey-400: #b7bfd9;
-    --palette-grey-800: #45474d;
-    --palette-grey-900: #2f3034;
-    --palette-grey-1000: #212226;
-    --palette-grey-1100: #18191d;
-    --palette-grey-1200: #121317;
-    --palette-blue-600: #3279f9;
 
-    /* Semantic Antigravity Theme Tokens */
-    --theme-surface-surface: var(--palette-grey-0);
-    --theme-surface-on-surface: var(--palette-grey-1200);
-    --theme-surface-on-surface-variant: var(--palette-grey-800);
-    --theme-surface-surface-container: var(--palette-grey-10);
-    --theme-surface-surface-container-high: var(--palette-grey-20);
-    --theme-surface-surface-container-higher: var(--palette-grey-50);
-    --theme-surface-surface-container-highest: var(--palette-grey-100);
+    /* Page & Surface Backgrounds */
+    --bg-main: #FAFAF9;                       /* stone-50: warm off-white, not stark */
+    --bg-surface: #F4F4F5;                    /* zinc-100: neutral surface */
+    --bg-mesh: none;                          /* no colored mesh in light mode */
 
-    --theme-primary-primary: var(--palette-blue-600);
-    --theme-primary-on-primary: var(--palette-grey-0);
-    --theme-button-states-primary-hovered: #1b66ea;
-    --theme-button-states-primary-pressed: rgba(230, 234, 240, 0.12);
-    --theme-button-states-primary-focused: rgba(230, 234, 240, 0.2);
+    /* Card System — white cards on off-white page = depth without heavy shadows */
+    --card-bg: #FFFFFF;
+    --card-bg-solid: #FFFFFF;
+    --card-border: #E4E4E7;                   /* zinc-200: clean neutral border */
+    --card-border-hover: #A1A1AA;             /* zinc-400: neutral hover border */
+    --card-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+    --card-shadow-lg: 0 4px 6px rgba(0,0,0,0.03), 0 12px 32px rgba(0,0,0,0.06);
 
-    --theme-secondary-button: rgba(183, 191, 217, 0.12);
-    --theme-button-secondary-hover: var(--palette-grey-15);
-    --theme-outline-variant: rgba(33, 34, 38, 0.08);
-    --theme-outline-outline-variant: #2122260f;
-    --shape-corner-rounded: 999px;
+    --glass-glow: rgba(0,0,0,0.03);          /* neutral soft glow, no color */
 
-    /* Gearify Semantic Aliases mapped to Antigravity Tokens */
-    --bg-main: var(--theme-surface-surface-container);
-    --bg-surface: var(--theme-surface-surface-container-high);
-    --bg-mesh: radial-gradient(ellipse at 20% 0%, rgba(50, 121, 249, 0.05) 0%, transparent 60%),
-               radial-gradient(ellipse at 80% 100%, rgba(183, 191, 217, 0.08) 0%, transparent 60%);
+    /* Typography */
+    --text-primary: #18181B;                  /* zinc-900: near-black charcoal */
+    --text-secondary: #52525B;                /* zinc-600: mid gray body */
+    --text-muted: #71717A;                    /* zinc-500: AA-safe muted labels */
+    --text-faint: #A1A1AA;                    /* zinc-400: faint elements */
 
-    --card-bg: rgba(255, 255, 255, 0.95);
-    --card-bg-solid: var(--theme-surface-surface);
-    --card-border: var(--theme-outline-variant);
-    --card-border-hover: rgba(50, 121, 249, 0.35);
-    --card-shadow: 0 1px 3px rgba(33, 34, 38, 0.05), 0 1px 2px rgba(33, 34, 38, 0.03);
-    --card-shadow-lg: 0 12px 32px -4px rgba(33, 34, 38, 0.08), 0 4px 12px -2px rgba(33, 34, 38, 0.04);
+    /* Accent System — Charcoal Ink (no color, inverted "ink" buttons) */
+    --accent: #18181B;                        /* zinc-900: primary CTA fill */
+    --accent-hover: #27272A;                  /* zinc-800: slightly lighter hover */
+    --accent-active: #09090B;                 /* zinc-950: deeper press state */
+    --accent-muted: rgba(24,24,27,0.06);      /* charcoal 6% tint */
+    --accent-light: rgba(24,24,27,0.10);      /* charcoal 10% tint */
 
-    --glass-glow: rgba(50, 121, 249, 0.12);
+    /* Secondary Accent — Mid Charcoal */
+    --accent-secondary: #52525B;              /* zinc-600 */
+    --accent-secondary-hover: #3F3F46;        /* zinc-700 */
+    --accent-secondary-muted: rgba(82,82,91,0.06);
+    --accent-secondary-light: rgba(82,82,91,0.10);
 
-    --text-primary: var(--theme-surface-on-surface);
-    --text-secondary: var(--theme-surface-on-surface-variant);
-    --text-muted: #5f6368;
-    --text-faint: var(--palette-grey-300);
+    /* Neumorphism / Elevation — vary subtly, low-opacity */
+    --neumorph-flat: 0 1px 2px rgba(0,0,0,0.04);
+    --neumorph-pressed: inset 0 1px 3px rgba(0,0,0,0.08);
+    --neumorph-hover: 0 2px 8px rgba(0,0,0,0.06);
 
-    /* Accent System - Antigravity Vivid Primary Blue (#3279f9) */
-    --accent: var(--theme-primary-primary);
-    --accent-hover: var(--theme-button-states-primary-hovered);
-    --accent-active: #1557b0;
-    --accent-muted: rgba(50, 121, 249, 0.08);
-    --accent-light: rgba(50, 121, 249, 0.16);
-
-    /* Secondary Accent */
-    --accent-secondary: #7c3aed;
-    --accent-secondary-hover: #6d28d9;
-    --accent-secondary-muted: rgba(124, 58, 237, 0.08);
-    --accent-secondary-light: rgba(124, 58, 237, 0.16);
-
-    /* Neumorphism / Elevation */
-    --neumorph-flat: 0 1px 2px rgba(33, 34, 38, 0.05);
-    --neumorph-pressed: inset 0 1px 3px rgba(33, 34, 38, 0.08);
-    --neumorph-hover: 0 4px 12px rgba(33, 34, 38, 0.08);
-
-    /* Status Colors — clean & balanced */
+    /* Status Colors — unchanged, these ARE the only color in light mode */
     --status-good: #059669;
     --status-good-bg: rgba(5, 150, 105, 0.08);
     --status-warning: #d97706;
@@ -96,11 +57,14 @@
     --status-danger-bg: rgba(225, 29, 72, 0.08);
 
     /* Dividers */
-    --divider: var(--theme-outline-outline-variant);
-    --divider-strong: var(--theme-outline-variant);
+    --divider: #E4E4E7;                       /* zinc-200 */
+    --divider-strong: #D4D4D8;                /* zinc-300 */
 
-    /* Focus Ring */
-    --focus-ring: 0 0 0 2px var(--bg-main), 0 0 0 4px var(--accent);
+    /* Focus Ring — charcoal, not blue */
+    --focus-ring: 0 0 0 2px #FAFAF9, 0 0 0 4px #18181B;
+
+    /* Shape */
+    --shape-corner-rounded: 999px;
   }
 
   [data-theme="dark"] {
@@ -266,7 +230,7 @@ body {
 @media (hover: hover) and (pointer: fine) {
   .btn-accent:hover {
     background-color: var(--accent-hover);
-    box-shadow: 0 4px 16px rgba(50, 121, 249, 0.25);
+    box-shadow: 0 4px 16px rgba(24, 24, 27, 0.15);
   }
   [data-theme="dark"] .btn-accent:hover {
     box-shadow: 0 4px 16px rgba(56, 189, 248, 0.2);
@@ -281,7 +245,7 @@ body {
    GHOST / OUTLINE BUTTON
 ═══════════════════════════════════════ */
 .btn-ghost {
-  background-color: var(--theme-secondary-button, transparent);
+  background-color: transparent;
   color: var(--text-primary);
   font-weight: 500;
   border: 1px solid var(--card-border);
@@ -300,7 +264,12 @@ body {
 
 @media (hover: hover) and (pointer: fine) {
   .btn-ghost:hover {
-    background-color: var(--theme-button-secondary-hover, var(--accent-muted));
+    background-color: #F4F4F5;
+    border-color: #D4D4D8;
+    color: var(--text-primary);
+  }
+  [data-theme="dark"] .btn-ghost:hover {
+    background-color: var(--accent-muted);
     border-color: var(--accent);
     color: var(--accent);
   }
@@ -433,14 +402,12 @@ select:focus-visible,
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
+  -webkit-text-fill-color: var(--text-primary);
 }
 
 [data-theme="dark"] .gradient-text {
-  background: linear-gradient(135deg, #38bdf8, var(--accent-secondary));
+  background: linear-gradient(135deg, #38bdf8, #c084fc);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

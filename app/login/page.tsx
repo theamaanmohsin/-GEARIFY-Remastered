@@ -76,14 +76,14 @@ export default function LoginPage() {
         >
           {/* Decorative Top Accent Line */}
           <div
-            className="absolute top-0 left-0 right-0 h-1.5"
-            style={{ background: "linear-gradient(90deg, var(--accent), var(--accent-secondary))" }}
+            className="absolute top-0 left-0 right-0 h-1"
+            style={{ backgroundColor: "var(--accent)" }}
           />
 
           <div className="text-center mb-8">
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
-              style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-secondary))" }}
+              style={{ backgroundColor: "var(--accent)" }}
             >
               <Wrench className="w-7 h-7 text-white" />
             </div>
