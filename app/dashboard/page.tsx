@@ -154,8 +154,8 @@ export default function DashboardPage() {
 
         <button
           onClick={() => fetchVehicles(searchQuery)}
-          className="p-2.5 rounded-xl transition-colors"
-          style={{ backgroundColor: "var(--accent-muted)", color: "var(--text-secondary)" }}
+          className="p-2.5 rounded-xl transition-colors border"
+          style={{ backgroundColor: "var(--bg-surface)", color: "var(--text-secondary)", borderColor: "var(--card-border)" }}
           title="Refresh dataset"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />

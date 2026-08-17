@@ -27,11 +27,11 @@ export default function VehicleCard({ vehicle, index }: VehicleCardProps) {
   const getVehicleIcon = () => {
     switch (vehicle.vehicle_type) {
       case "motorcycle":
-        return <Bike className="w-5 h-5" style={{ color: "var(--accent)" }} />;
+        return <Bike className="w-5 h-5" style={{ color: "var(--text-primary)" }} />;
       case "lcv":
-        return <Truck className="w-5 h-5" style={{ color: "var(--status-warning)" }} />;
+        return <Truck className="w-5 h-5" style={{ color: "var(--text-primary)" }} />;
       default:
-        return <Car className="w-5 h-5" style={{ color: "var(--accent)" }} />;
+        return <Car className="w-5 h-5" style={{ color: "var(--text-primary)" }} />;
     }
   };
 
@@ -101,7 +101,7 @@ export default function VehicleCard({ vehicle, index }: VehicleCardProps) {
         <div className="flex items-center gap-2">
           <div
             className="p-2 rounded-xl border"
-            style={{ borderColor: "var(--card-border)", backgroundColor: "var(--accent-muted)" }}
+            style={{ borderColor: "var(--card-border)", backgroundColor: "var(--bg-surface)" }}
           >
             {getVehicleIcon()}
           </div>
@@ -135,14 +135,14 @@ export default function VehicleCard({ vehicle, index }: VehicleCardProps) {
         style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}
       >
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4" style={{ color: "var(--accent)" }} />
+          <Calendar className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />
           <div>
             <span className="text-[10px] uppercase tracking-wider block font-semibold" style={{ color: "var(--text-muted)" }}>Model Year</span>
             <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{vehicle.year}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Gauge className="w-4 h-4" style={{ color: "var(--accent)" }} />
+          <Gauge className="w-4 h-4" style={{ color: "var(--text-secondary)" }} />
           <div>
             <span className="text-[10px] uppercase tracking-wider block font-semibold" style={{ color: "var(--text-muted)" }}>Odometer</span>
             <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{vehicle.current_km.toLocaleString()} KM</span>
@@ -192,10 +192,11 @@ export default function VehicleCard({ vehicle, index }: VehicleCardProps) {
         </span>
 
         <span
-          className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors"
+          className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors border"
           style={{
-            color: "var(--accent)",
-            backgroundColor: "var(--accent-muted)",
+            color: "var(--text-primary)",
+            backgroundColor: "var(--bg-surface)",
+            borderColor: "var(--card-border)",
           }}
         >
           View Passport

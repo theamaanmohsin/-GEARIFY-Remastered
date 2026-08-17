@@ -177,16 +177,16 @@ export default function PublicVehiclePassportPage() {
         )}
 
         {/* Health Score Gauge Bar */}
-        <div className="p-4 rounded-2xl border space-y-2" style={{ backgroundColor: "var(--accent-muted)", borderColor: "var(--accent-light)" }}>
+        <div className="p-4 rounded-2xl border space-y-2" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
           <div className="flex justify-between items-center text-xs">
-            <span className="font-extrabold uppercase tracking-wider" style={{ color: "var(--accent)" }}>
+            <span className="font-extrabold uppercase tracking-wider" style={{ color: "var(--text-primary)" }}>
               GEARIFY Health Index
             </span>
             <span className="font-mono font-black text-lg" style={{ color: "var(--text-primary)" }}>
               {vehicle.health_score}/100
             </span>
           </div>
-          <div className="w-full h-3 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-surface)" }}>
+          <div className="w-full h-3 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-main)" }}>
             <motion.div
               initial={reduceMotion ? { width: `${vehicle.health_score}%` } : { width: 0 }}
               animate={{ width: `${vehicle.health_score}%` }}
@@ -200,7 +200,7 @@ export default function PublicVehiclePassportPage() {
         {/* History Timeline */}
         <div className="space-y-3 pt-4 border-t" style={{ borderColor: "var(--divider)" }}>
           <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--text-primary)" }}>
-            <FileText className="w-4 h-4" style={{ color: "var(--accent)" }} /> Verified Workshop Service Logs
+            <FileText className="w-4 h-4" style={{ color: "var(--text-secondary)" }} /> Verified Workshop Service Logs
           </h3>
 
           {history.length > 0 ? (
