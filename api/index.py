@@ -461,10 +461,10 @@ def create_service():
             # Dictionary lookup so duplicate part IDs (e.g. a part wrongly sent
             # twice) still resolve to the same part and are priced/listed once,
             # keeping line items and the grand total accurate.
-            parts_map: dict[int, ServicePart] = {int(part.id): part for part in parts}
+            parts_map = {getattr(part, "id"): part for part in parts}
             seen_ids = set()
             for pid in selected_part_ids:
-                part = parts_map.get(int(pid))
+                part = parts_map.get(pid)
                 if part is None or part.id in seen_ids:
                     continue
                 seen_ids.add(part.id)
