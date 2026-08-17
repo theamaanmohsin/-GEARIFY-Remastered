@@ -64,7 +64,7 @@
     --focus-ring: 0 0 0 2px #FAFAF9, 0 0 0 4px #18181B;
 
     /* Logo Badge System */
-    --logo-icon-color: #85898e;               /* spanner silver/slate in light mode */
+    --logo-icon-color: #FFFFFF;               /* pure white wrench in light mode */
 
     /* Shape */
     --shape-corner-rounded: 999px;
@@ -465,8 +465,8 @@ section[id] {
    LOGO WRENCH ICON
 ═══════════════════════════════════════ */
 .logo-wrench-icon {
-  color: var(--logo-icon-color, #85898e) !important;
-  stroke: var(--logo-icon-color, #85898e) !important;
+  color: var(--logo-icon-color, #FFFFFF) !important;
+  stroke: var(--logo-icon-color, #FFFFFF) !important;
 }
 
 
