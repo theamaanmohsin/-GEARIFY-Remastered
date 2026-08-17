@@ -32,6 +32,7 @@ from api.auth import (
 app = Flask(__name__)
 
 # CORS Setup
+# pyrefly: ignore
 CORS(app, resources={
     r"/api/*": {
         "origins": [
@@ -460,10 +461,10 @@ def create_service():
             # Dictionary lookup so duplicate part IDs (e.g. a part wrongly sent
             # twice) still resolve to the same part and are priced/listed once,
             # keeping line items and the grand total accurate.
-            parts_map = {part.id: part for part in parts}
+            parts_map: dict[int, ServicePart] = {int(part.id): part for part in parts}
             seen_ids = set()
             for pid in selected_part_ids:
-                part = parts_map.get(pid)
+                part = parts_map.get(int(pid))
                 if part is None or part.id in seen_ids:
                     continue
                 seen_ids.add(part.id)
@@ -665,6 +666,9 @@ def update_part_price(part_id):
     """
     data = request.get_json() or {}
     new_price = data.get("unit_price")
+
+    if new_price is None:
+        return jsonify({"error": "Valid positive unit_price is required"}), 400
 
     # Validate a coercible positive integer price, catching malformed strings
     # (e.g. "abc") that previously raised an unhandled ValueError -> 500.
@@ -1155,10 +1159,11 @@ def ocr_plate():
         img = img.convert("L")
 
         # Extract text — Pakistani plates typically have alphanumeric chars
-        extracted = pytesseract.image_to_string(
+        ocr_result = pytesseract.image_to_string(
             img,
             config="--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-",
-        ).strip()
+        )
+        extracted = str(ocr_result).strip()
 
         # Clean up common OCR artifacts
         cleaned = extracted.replace("\n", " ").replace("  ", " ").strip().upper()
