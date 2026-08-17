@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import DynamicCursorTrail from "./components/marketing/DynamicCursorTrail";
@@ -27,6 +28,7 @@ export default function RootLayout({
         <ThemeProvider>
           <DynamicCursorTrail />
           {children}
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
