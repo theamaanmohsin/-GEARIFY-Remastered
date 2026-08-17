@@ -254,7 +254,7 @@ export default function NewServicePage() {
                       backgroundColor: active ? "var(--accent-muted)" : "var(--bg-surface)",
                       borderColor: active ? "var(--accent)" : "var(--card-border)",
                       color: active ? "var(--accent)" : "var(--text-secondary)",
-                      boxShadow: active ? "0 8px 24px rgba(0, 113, 227, 0.15)" : undefined,
+                      boxShadow: active ? "0 8px 24px var(--glass-glow)" : undefined,
                     }}
                   >
                     <Icon className="w-6 h-6 mb-2" />
