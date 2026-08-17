@@ -94,7 +94,7 @@ export default function RegisterPage() {
               className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg"
               style={{ backgroundColor: "var(--accent)" }}
             >
-              <Wrench className="w-6 h-6 text-white logo-wrench-icon" style={{ color: "#FFFFFF", stroke: "#FFFFFF" }} />
+              <Wrench color="#FFFFFF" className="w-6 h-6 text-white logo-wrench-icon" style={{ color: "#FFFFFF", stroke: "#FFFFFF" }} />
             </div>
             <h2 className="text-2xl font-black" style={{ color: "var(--text-primary)" }}>
               Create Account

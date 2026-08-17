@@ -464,7 +464,10 @@ section[id] {
 /* ═══════════════════════════════════════
    LOGO WRENCH ICON
 ═══════════════════════════════════════ */
-.logo-wrench-icon {
+.logo-wrench-icon,
+svg.logo-wrench-icon,
+svg.logo-wrench-icon path,
+.logo-wrench-icon path {
   color: #FFFFFF !important;
   stroke: #FFFFFF !important;
 }
