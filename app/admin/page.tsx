@@ -28,6 +28,7 @@ export default function AdminConsolePage() {
   // Security Key & Currency State
   const [adminKey, setAdminKey] = useState("");
   const [currency, setCurrency] = useState("PKR");
+  const [savingSetting, setSavingSetting] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -196,6 +197,7 @@ export default function AdminConsolePage() {
       setError("Setting value cannot be empty");
       return;
     }
+    setSavingSetting(key);
     try {
       const res = await fetch(`/api/settings/${key}`, {
         method: "PUT",
@@ -209,15 +211,17 @@ export default function AdminConsolePage() {
       }
       if (key === "admin_key") {
         setAdminKey(data.value || value.trim());
-        setMessage("Admin Security Key updated successfully!");
+        setMessage("Admin Security Key updated and saved successfully!");
       } else if (key === "default_currency") {
         setCurrency(data.value || value.trim());
-        setMessage("Shop Default Currency updated successfully!");
+        setMessage("Shop Default Currency updated and saved successfully!");
       } else {
         setMessage(`Setting '${key}' updated successfully!`);
       }
     } catch (err: any) {
       setError(err?.message || "Failed to update setting");
+    } finally {
+      setSavingSetting(null);
     }
   };
 
@@ -549,6 +553,38 @@ export default function AdminConsolePage() {
             </p>
           </div>
 
+          {message && (
+            <motion.div
+              initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border"
+              style={{
+                backgroundColor: "var(--status-good-bg)",
+                borderColor: "var(--status-good)",
+                color: "var(--status-good)",
+              }}
+            >
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{message}</span>
+            </motion.div>
+          )}
+
+          {error && (
+            <motion.div
+              initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border"
+              style={{
+                backgroundColor: "var(--status-danger-bg)",
+                borderColor: "var(--status-danger)",
+                color: "var(--status-danger)",
+              }}
+            >
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
+            </motion.div>
+          )}
+
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>
@@ -559,15 +595,20 @@ export default function AdminConsolePage() {
                   type="text"
                   value={adminKey}
                   onChange={(e) => setAdminKey(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleUpdateSetting("admin_key", adminKey);
+                  }}
+                  disabled={savingSetting === "admin_key"}
                   className="flex-1 input-field !pl-3 font-mono text-center font-bold text-sm"
                   style={{ color: "var(--status-danger)" }}
                 />
                 <button
                   onClick={() => handleUpdateSetting("admin_key", adminKey)}
-                  className="neu-button px-4 py-2.5 rounded-xl text-xs font-bold uppercase"
+                  disabled={savingSetting === "admin_key"}
+                  className="neu-button px-4 py-2.5 rounded-xl text-xs font-bold uppercase disabled:opacity-50"
                   style={{ color: "var(--accent)" }}
                 >
-                  Save Key
+                  {savingSetting === "admin_key" ? "Saving..." : "Save Key"}
                 </button>
               </div>
             </div>
@@ -581,15 +622,20 @@ export default function AdminConsolePage() {
                   type="text"
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleUpdateSetting("default_currency", currency);
+                  }}
+                  disabled={savingSetting === "default_currency"}
                   placeholder="PKR, USD, EUR..."
                   className="flex-1 input-field !pl-3 font-mono text-center font-bold text-sm"
                 />
                 <button
                   onClick={() => handleUpdateSetting("default_currency", currency)}
-                  className="neu-button px-4 py-2.5 rounded-xl text-xs font-bold uppercase"
+                  disabled={savingSetting === "default_currency"}
+                  className="neu-button px-4 py-2.5 rounded-xl text-xs font-bold uppercase disabled:opacity-50"
                   style={{ color: "var(--accent)" }}
                 >
-                  Save Currency
+                  {savingSetting === "default_currency" ? "Saving..." : "Save Currency"}
                 </button>
               </div>
             </div>

@@ -49,6 +49,9 @@ export default function RegisterPage() {
         throw new Error(data.error || "Registration failed");
       }
 
+      if (data.token) {
+        localStorage.setItem("gearify_token", data.token);
+      }
       if (data.user) {
         localStorage.setItem("gearify_user", JSON.stringify(data.user));
       }

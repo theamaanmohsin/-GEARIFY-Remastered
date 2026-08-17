@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from flask import Flask, jsonify, request, make_response, send_from_directory
+from flask import Flask, jsonify, request, make_response, send_from_directory, send_file
 # pyrefly: ignore [missing-import]
 from flask_cors import CORS
 # pyrefly: ignore [missing-import]
@@ -166,8 +166,8 @@ def ensure_db():
 
 @app.after_request
 def add_no_cache_headers(response):
-    """Ensure API responses are never cached by browsers, Next.js, or CDN proxies."""
-    if request.path.startswith("/api/"):
+    """Ensure dynamic API JSON responses are not cached, while allowing QR and static images to be cached."""
+    if request.path.startswith("/api/") and not request.path.endswith("/qr"):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
@@ -845,7 +845,7 @@ def update_setting(key):
             setting = Setting(key=key, value=new_value)
             session.add(setting)
         else:
-            setting.value = new_value
+            setattr(setting, "value", new_value)
 
         session.commit()
         return jsonify({"message": f"Setting '{key}' updated successfully", "key": key, "value": new_value})
@@ -973,6 +973,46 @@ def get_analytics():
         session.close()
 
 
+def get_public_base_url() -> str:
+    """
+    Dynamically and reliably resolves the public frontend base URL:
+      1. Explicit FRONTEND_URL env var if configured
+      2. Vercel deployment automatic env vars (VERCEL_PROJECT_PRODUCTION_URL, VERCEL_URL)
+      3. Incoming request Host / X-Forwarded-Host headers (matches active domain/subdomain)
+      4. Default fallback to http://localhost:3000
+    """
+    # 1. User-configured FRONTEND_URL
+    explicit = os.environ.get("FRONTEND_URL")
+    if explicit and explicit.strip():
+        url = explicit.strip().rstrip("/")
+        if not url.startswith("http://") and not url.startswith("https://"):
+            url = f"https://{url}"
+        return url
+
+    # 2. Vercel deployment automatic env vars
+    vercel_prod = os.environ.get("VERCEL_PROJECT_PRODUCTION_URL")
+    if vercel_prod and vercel_prod.strip():
+        return f"https://{vercel_prod.strip().rstrip('/')}"
+
+    vercel_url = os.environ.get("VERCEL_URL")
+    if vercel_url and vercel_url.strip():
+        return f"https://{vercel_url.strip().rstrip('/')}"
+
+    # 3. Dynamic header detection from incoming HTTP request
+    try:
+        forwarded_host = request.headers.get("x-forwarded-host") or request.headers.get("host")
+        if forwarded_host:
+            forwarded_proto = request.headers.get("x-forwarded-proto") or ("https" if request.is_secure else "http")
+            # In local development Next.js proxy rewrite from 3000 -> 5328
+            if ":5328" in forwarded_host:
+                forwarded_host = forwarded_host.replace(":5328", ":3000")
+            return f"{forwarded_proto}://{forwarded_host.rstrip('/')}"
+    except Exception:
+        pass
+
+    return "http://localhost:3000"
+
+
 # ---------------------------------------------------------------------------
 # QR Vehicle Passport — §8.1 (server-side QR generation)
 # ---------------------------------------------------------------------------
@@ -980,21 +1020,18 @@ def get_analytics():
 def generate_vehicle_qr(reg_no):
     """
     Generates a QR code image encoding the public tracking URL for this vehicle.
-    Returns a PNG image response.
+    Returns a clean PNG image response with proper cache headers.
     """
-    # `<path:reg_no>` converter may yield slashes from URL-encoded plates; the
-    # tracking page itself defines its regNo segment without slashes, so keep
-    # the encoded form intact for the QR payload.
-    display_reg = reg_no.strip().upper()
+    import urllib.parse
+    display_reg = urllib.parse.unquote(reg_no).strip().upper()
 
     try:
-        # type: ignore
+        # pyrefly: ignore [missing-import]
         import qrcode
         from io import BytesIO
 
-        # Build the public tracking URL
-        base_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
-        tracking_url = f"{base_url}/track/{display_reg}"
+        base_url = get_public_base_url()
+        tracking_url = f"{base_url}/track/{urllib.parse.quote(display_reg)}"
 
         qr = qrcode.QRCode(
             version=1,
@@ -1008,12 +1045,16 @@ def generate_vehicle_qr(reg_no):
         img = qr.make_image(fill_color="#1e1b4b", back_color="white")
 
         buf = BytesIO()
-        img.save(buf, "PNG")
+        img.save(buf)
         buf.seek(0)
 
-        response = make_response(buf.read())
-        response.headers["Content-Type"] = "image/png"
-        response.headers["Cache-Control"] = "public, max-age=3600"
+        response = send_file(
+            buf,
+            mimetype="image/png",
+            as_attachment=False,
+            download_name=f"qr-{display_reg}.png",
+        )
+        response.headers["Cache-Control"] = "public, max-age=86400, s-maxage=86400"
         return response
 
     except ImportError:
