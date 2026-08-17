@@ -227,7 +227,7 @@ export default function ReceiptPage() {
             className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg print:hidden text-white"
             style={{ backgroundColor: "var(--accent)" }}
           >
-            <Wrench className="w-6 h-6" />
+            <Wrench className="w-6 h-6 text-white dark:text-[#0B0D10]" />
           </div>
           <h1 className="text-2xl font-black tracking-wider uppercase print:text-black" style={{ color: "var(--text-primary)" }}>
             GEARIFY REMASTERED APMS

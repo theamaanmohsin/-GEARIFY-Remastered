@@ -13,14 +13,14 @@ interface GlowParticle {
   color: string;
 }
 
-// Dark mode luminous neon palette
+// Dark mode luminous warm gold & status palette
 const DARK_PALETTE: Record<string, string> = {
-  charcoal: "#38bdf8",
-  cyan: "#38bdf8",
+  charcoal: "#C9A227",
+  cyan: "#C9A227",
   emerald: "#10b981",
   amber: "#fbbf24",
   rose: "#f43f5e",
-  violet: "#c084fc",
+  violet: "#E4C55E",
 };
 
 // Light mode high-contrast neutral pigment palette

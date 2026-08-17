@@ -83,13 +83,7 @@ export default function DashboardPage() {
       {/* Summary KPI Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-panel glass-hover-border rounded-xl p-4 flex items-center gap-3">
-          <div
-            className="p-3 rounded-xl"
-            style={{
-              backgroundColor: "#F4F4F5",
-              color: "#18181B",
-            }}
-          >
+          <div className="p-3 rounded-xl bg-zinc-100 dark:bg-[#1C1F24] text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800">
             <Car className="w-6 h-6" />
           </div>
           <div>

@@ -51,7 +51,7 @@ export default function LandingNav() {
           {/* Brand */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: "var(--accent)" }}>
-              <Wrench className="w-4 h-4 text-white" />
+              <Wrench className="w-4 h-4 text-white dark:text-[#0B0D10]" />
             </div>
             <div className="flex items-center gap-1.5">
               <span className="font-black text-lg tracking-tight gradient-text">GEARIFY</span>

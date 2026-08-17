@@ -69,48 +69,52 @@
 
   [data-theme="dark"] {
     /* ═══════════════════════════════════════════════════
-       DARK THEME — Deep Aerospace Slate & Neon Cyber
-       Deep midnight blue-zinc canvas, radiant cyan & purple glow,
-       crisp luminescent accents, ultra-premium contrast
+       DARK THEME — Charcoal Slate & Warm Gold / Brass
+       Tiered charcoal surfaces (#0B0D10 -> #16181C -> #1C1F24),
+       muted warm gold / brass accent (#C9A227), zinc typography
     ═══════════════════════════════════════════════════ */
-    --bg-main: #06090e;
-    --bg-surface: #0c121e;
-    --bg-mesh: radial-gradient(ellipse at 20% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 60%),
-               radial-gradient(ellipse at 80% 100%, rgba(192, 132, 252, 0.07) 0%, transparent 60%);
 
-    --card-bg: rgba(15, 23, 42, 0.78);
-    --card-bg-solid: #0f172a;
-    --card-border: rgba(51, 65, 85, 0.7);
-    --card-border-hover: rgba(56, 189, 248, 0.55);
+    /* Page & Surface Backgrounds */
+    --bg-main: #0B0D10;                        /* near-black charcoal-slate */
+    --bg-surface: #16181C;                     /* card & surface container */
+    --bg-surface-elevated: #1C1F24;            /* modals, dropdowns, elevated chips */
+    --bg-mesh: none;
+
+    /* Card System */
+    --card-bg: #16181C;
+    --card-bg-solid: #16181C;
+    --card-border: #27272A;                    /* zinc-800: clean dark border */
+    --card-border-hover: #3F3F46;              /* zinc-700: hover border */
     --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
     --card-shadow-lg: 0 12px 36px -4px rgba(0, 0, 0, 0.75), 0 4px 12px rgba(0, 0, 0, 0.5);
 
-    --glass-glow: rgba(56, 189, 248, 0.25);
+    --glass-glow: rgba(201, 162, 39, 0.08);
 
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
-    --text-faint: #64748b;
+    /* Typography */
+    --text-primary: #F4F4F5;                   /* zinc-100: off-white */
+    --text-secondary: #A1A1AA;                 /* zinc-400: mid gray body */
+    --text-muted: #71717A;                     /* zinc-500: muted labels */
+    --text-faint: #52525B;                     /* zinc-600: faint borders/elements */
 
-    /* Accent System - Electric Cyan & Radiant Violet */
-    --accent: #38bdf8;
-    --accent-hover: #7dd3fc;
-    --accent-active: #0284c7;
-    --accent-muted: rgba(56, 189, 248, 0.14);
-    --accent-light: rgba(56, 189, 248, 0.22);
+    /* Accent System — Warm Muted Gold / Brass (#C9A227) */
+    --accent: #C9A227;                         /* primary gold CTA fill */
+    --accent-hover: #E4C55E;                   /* lighter gold hover */
+    --accent-active: #A38018;                  /* deep gold pressed state */
+    --accent-muted: rgba(201, 162, 39, 0.12);  /* 12% gold tint */
+    --accent-light: rgba(201, 162, 39, 0.20);  /* 20% gold tint */
 
-    /* Secondary Accent (Electric Purple) */
-    --accent-secondary: #c084fc;
-    --accent-secondary-hover: #e9d5ff;
-    --accent-secondary-muted: rgba(192, 132, 252, 0.15);
-    --accent-secondary-light: rgba(192, 132, 252, 0.24);
+    /* Secondary Accent — Warm Gold */
+    --accent-secondary: #C9A227;
+    --accent-secondary-hover: #E4C55E;
+    --accent-secondary-muted: rgba(201, 162, 39, 0.12);
+    --accent-secondary-light: rgba(201, 162, 39, 0.20);
 
-    /* Neumorphism */
+    /* Neumorphism / Elevation */
     --neumorph-flat: 0 2px 6px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.4);
     --neumorph-pressed: inset 0 2px 6px rgba(0, 0, 0, 0.6);
-    --neumorph-hover: 0 6px 20px rgba(0, 0, 0, 0.8), 0 2px 6px rgba(56, 189, 248, 0.15);
+    --neumorph-hover: 0 4px 14px rgba(0, 0, 0, 0.7);
 
-    /* Status Colors — High-Luminance Neon */
+    /* Status Colors — UNCHANGED */
     --status-good: #10b981;
     --status-good-bg: rgba(16, 185, 129, 0.16);
     --status-warning: #fbbf24;
@@ -119,11 +123,11 @@
     --status-danger-bg: rgba(244, 63, 94, 0.16);
 
     /* Dividers */
-    --divider: rgba(63, 63, 70, 0.4);
-    --divider-strong: rgba(63, 63, 70, 0.7);
+    --divider: #27272A;                        /* zinc-800 */
+    --divider-strong: #3F3F46;                 /* zinc-700 */
 
     /* Focus Ring */
-    --focus-ring: 0 0 0 2px var(--bg-main), 0 0 0 4px var(--accent);
+    --focus-ring: 0 0 0 2px #0B0D10, 0 0 0 4px #C9A227;
   }
 }
 
@@ -227,13 +231,17 @@ body {
   gap: 8px;
 }
 
+[data-theme="dark"] .btn-accent {
+  color: #0B0D10;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .btn-accent:hover {
     background-color: var(--accent-hover);
     box-shadow: 0 4px 16px rgba(24, 24, 27, 0.15);
   }
   [data-theme="dark"] .btn-accent:hover {
-    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.2);
+    box-shadow: 0 4px 16px rgba(201, 162, 39, 0.25);
   }
 }
 
@@ -262,6 +270,11 @@ body {
   gap: 8px;
 }
 
+[data-theme="dark"] .btn-ghost {
+  color: #F4F4F5;
+  border-color: #3F3F46;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .btn-ghost:hover {
     background-color: #F4F4F5;
@@ -269,9 +282,9 @@ body {
     color: var(--text-primary);
   }
   [data-theme="dark"] .btn-ghost:hover {
-    background-color: var(--accent-muted);
-    border-color: var(--accent);
-    color: var(--accent);
+    background-color: #1C1F24;
+    border-color: #52525B;
+    color: #F4F4F5;
   }
 }
 
@@ -407,10 +420,8 @@ select:focus-visible,
 }
 
 [data-theme="dark"] .gradient-text {
-  background: linear-gradient(135deg, #38bdf8, #c084fc);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #F4F4F5;
+  -webkit-text-fill-color: #F4F4F5;
 }
 
 /* Smooth scroll for the landing page */

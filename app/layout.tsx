@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
-      <body className="antialiased min-h-screen flex flex-col selection:bg-zinc-900/15 selection:text-zinc-900 dark:selection:bg-sky-400/20 dark:selection:text-sky-300">
+      <body className="antialiased min-h-screen flex flex-col selection:bg-zinc-900/15 selection:text-zinc-900 dark:selection:bg-[#C9A227]/25 dark:selection:text-[#E4C55E]">
         <ThemeProvider>
           <DynamicCursorTrail />
           {children}

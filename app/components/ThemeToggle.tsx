@@ -15,10 +15,10 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       className="neu-button focus-ring relative flex items-center justify-center w-10 h-10 rounded-xl transition-all"
       style={{
-        backgroundColor: isDark ? "rgba(15, 23, 42, 0.85)" : "#ffffff",
-        borderColor: isDark ? "rgba(56, 189, 248, 0.3)" : "#D4D4D8",
+        backgroundColor: isDark ? "#16181C" : "#ffffff",
+        borderColor: isDark ? "rgba(201, 162, 39, 0.35)" : "#D4D4D8",
         boxShadow: isDark
-          ? "0 0 14px rgba(56, 189, 248, 0.2)"
+          ? "0 0 14px rgba(201, 162, 39, 0.15)"
           : "0 1px 3px rgba(0, 0, 0, 0.06)",
       }}
       whileHover={reduceMotion ? undefined : { scale: 1.08 }}
@@ -38,9 +38,9 @@ export default function ThemeToggle() {
                 ? { duration: 0 }
                 : { type: "spring", stiffness: 350, damping: 20 }
             }
-            className="flex items-center justify-center text-sky-400"
+            className="flex items-center justify-center text-[#C9A227]"
           >
-            <Moon className="w-5 h-5 fill-sky-400/20 stroke-sky-400" />
+            <Moon className="w-5 h-5 fill-[#C9A227]/20 stroke-[#C9A227]" />
           </motion.div>
         ) : (
           <motion.div

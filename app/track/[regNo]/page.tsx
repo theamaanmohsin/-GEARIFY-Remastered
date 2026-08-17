@@ -124,7 +124,7 @@ export default function PublicVehiclePassportPage() {
               className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg text-white"
               style={{ backgroundColor: "var(--accent)" }}
             >
-              <Wrench className="w-6 h-6" />
+              <Wrench className="w-6 h-6 text-white dark:text-[#0B0D10]" />
             </div>
             <div>
               <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "var(--accent)" }}>
