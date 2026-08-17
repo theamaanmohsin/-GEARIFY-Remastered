@@ -67,7 +67,7 @@ export default function MarketingSocialProof() {
               Trusted on the Workshop Floor
             </h2>
           </div>
-          <div className="text-xs font-mono text-slate-500 uppercase tracking-widest">
+          <div className="text-xs font-mono uppercase tracking-widest" style={{ color: "var(--accent)" }}>
             OPERATOR CASE STUDIES · INDEPENDENT FEEDBACK
           </div>
         </div>
