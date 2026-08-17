@@ -698,9 +698,9 @@ def update_part_price(part_id):
 
         setattr(part, "unit_price", new_price_int)
         if "name" in data:
-            part.name = data["name"]
+            setattr(part, "name", data["name"])
         if "brand" in data:
-            part.brand = data["brand"]
+            setattr(part, "brand", data["brand"])
 
         session.commit()
         return jsonify({"message": "Part updated successfully", "part": part.to_dict()})
