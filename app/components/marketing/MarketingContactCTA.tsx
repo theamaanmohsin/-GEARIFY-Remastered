@@ -74,20 +74,20 @@ export default function MarketingContactCTA() {
               <Wrench className="w-4 h-4 text-[var(--accent)]" />
               <span>GEARIFY APMS</span>
             </div>
-            <p className="text-slate-400 leading-relaxed text-[11px]">
+            <p className="leading-relaxed text-[11px]" style={{ color: "var(--text-secondary)" }}>
               Automotive Performance Management System engineered for modern independent workshops and commercial fleet operators.
             </p>
-            <div className="text-[10px] text-slate-500 pt-2">
+            <div className="text-[10px] pt-2" style={{ color: "var(--text-muted)" }}>
               VERSION 2.0 · PRODUCTION CLOUD
             </div>
           </div>
 
           {/* Col 2 */}
           <div className="space-y-2">
-            <div className="font-bold text-slate-300 uppercase tracking-widest text-[10px]">
+            <div className="font-bold uppercase tracking-widest text-[10px]" style={{ color: "var(--text-primary)" }}>
               PLATFORM CAPABILITIES
             </div>
-            <ul className="space-y-1.5 text-slate-400 text-[11px]">
+            <ul className="space-y-1.5 text-[11px]" style={{ color: "var(--text-secondary)" }}>
               <li><Link href="#feature-telemetry" className="hover:text-[var(--accent)] transition-colors">· 100-Point Health Engine</Link></li>
               <li><Link href="#feature-dual-fleet" className="hover:text-[var(--accent)] transition-colors">· Dual Motorcycle & Auto Fleet</Link></li>
               <li><Link href="#feature-parts" className="hover:text-[var(--accent)] transition-colors">· 43+ Parts Margin Governance</Link></li>
@@ -98,10 +98,10 @@ export default function MarketingContactCTA() {
 
           {/* Col 3 */}
           <div className="space-y-2">
-            <div className="font-bold text-slate-300 uppercase tracking-widest text-[10px]">
+            <div className="font-bold uppercase tracking-widest text-[10px]" style={{ color: "var(--text-primary)" }}>
               WORKSHOP ONBOARDING
             </div>
-            <ul className="space-y-1.5 text-slate-400 text-[11px]">
+            <ul className="space-y-1.5 text-[11px]" style={{ color: "var(--text-secondary)" }}>
               <li><Link href="/register" className="hover:text-[var(--accent)] transition-colors">· Register New Workshop</Link></li>
               <li><Link href="/login" className="hover:text-[var(--accent)] transition-colors">· Existing Terminal Login</Link></li>
               <li><Link href="#pricing" className="hover:text-[var(--accent)] transition-colors">· Workshop Subscription Tiers</Link></li>
@@ -111,10 +111,10 @@ export default function MarketingContactCTA() {
 
           {/* Col 4 */}
           <div className="space-y-2">
-            <div className="font-bold text-slate-300 uppercase tracking-widest text-[10px]">
+            <div className="font-bold uppercase tracking-widest text-[10px]" style={{ color: "var(--text-primary)" }}>
               OPERATIONAL HUBS
             </div>
-            <ul className="space-y-1 text-slate-400 text-[11px]">
+            <ul className="space-y-1 text-[11px]" style={{ color: "var(--text-secondary)" }}>
               <li>· Karachi: PECHS Block 6 & DHA Phase 6</li>
               <li>· Lahore: Gulberg III & Cavalry Ground</li>
               <li>· Islamabad: I-9 Industrial & Blue Area</li>
@@ -124,7 +124,7 @@ export default function MarketingContactCTA() {
         </div>
 
         {/* Bottom Folio & Copyright */}
-        <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] font-mono text-slate-500" style={{ borderColor: "var(--divider)" }}>
+        <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] font-mono" style={{ borderColor: "var(--divider)", color: "var(--text-muted)" }}>
           <div>
             © 2026 GEARIFY REMASTERED. ALL RIGHTS RESERVED. REGISTERED IN PAKISTAN.
           </div>

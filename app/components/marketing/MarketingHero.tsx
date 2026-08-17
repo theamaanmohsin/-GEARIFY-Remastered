@@ -76,8 +76,8 @@ export default function MarketingHero() {
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             STANDALONE CLOUD TERMINAL
           </span>
-          <span className="text-slate-500 hidden sm:inline">·</span>
-          <span className="hidden sm:inline text-slate-400">ENGINEERED FOR WORKSHOPS</span>
+          <span className="hidden sm:inline" style={{ color: "var(--text-faint)" }}>·</span>
+          <span className="hidden sm:inline" style={{ color: "var(--text-secondary)" }}>ENGINEERED FOR WORKSHOPS</span>
         </div>
       </div>
 
@@ -126,19 +126,19 @@ export default function MarketingHero() {
               {/* Feature Highlights Matrix */}
               <div className="grid grid-cols-2 gap-3 text-xs font-mono">
                 <div className="p-3.5 rounded-xl border" style={{ backgroundColor: "var(--card-bg-solid)", borderColor: "var(--card-border)" }}>
-                  <span className="block text-[10px] text-slate-500 uppercase">HEALTH ENGINE</span>
+                  <span className="block text-[10px] uppercase font-semibold" style={{ color: "var(--text-muted)" }}>HEALTH ENGINE</span>
                   <span className="font-bold text-sm text-[var(--status-good)]">100-Pt Telemetry</span>
                 </div>
                 <div className="p-3.5 rounded-xl border" style={{ backgroundColor: "var(--card-bg-solid)", borderColor: "var(--card-border)" }}>
-                  <span className="block text-[10px] text-slate-500 uppercase">FLEET SCOPE</span>
+                  <span className="block text-[10px] uppercase font-semibold" style={{ color: "var(--text-muted)" }}>FLEET SCOPE</span>
                   <span className="font-bold text-sm text-[var(--accent)]">Auto & Motorcycle</span>
                 </div>
                 <div className="p-3.5 rounded-xl border" style={{ backgroundColor: "var(--card-bg-solid)", borderColor: "var(--card-border)" }}>
-                  <span className="block text-[10px] text-slate-500 uppercase">PARTS PRICING</span>
+                  <span className="block text-[10px] uppercase font-semibold" style={{ color: "var(--text-muted)" }}>PARTS PRICING</span>
                   <span className="font-bold text-sm text-[var(--status-warning)]">Dynamic Margins</span>
                 </div>
                 <div className="p-3.5 rounded-xl border" style={{ backgroundColor: "var(--card-bg-solid)", borderColor: "var(--card-border)" }}>
-                  <span className="block text-[10px] text-slate-500 uppercase">VERIFICATION</span>
+                  <span className="block text-[10px] uppercase font-semibold" style={{ color: "var(--text-muted)" }}>VERIFICATION</span>
                   <span className="font-bold text-sm text-[var(--accent-secondary)]">Immutable QR</span>
                 </div>
               </div>
@@ -164,31 +164,50 @@ export default function MarketingHero() {
       </div>
 
       {/* Bottom Feature Anchor Bar */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto pt-6 border-t flex flex-wrap items-center justify-between gap-4 text-xs font-mono" style={{ borderColor: "var(--divider)", color: "var(--text-muted)" }}>
-        <div className="flex items-center gap-4 overflow-x-auto py-1">
-          <Link href="#feature-telemetry" className="hover:text-[var(--accent)] transition-colors whitespace-nowrap">
-            [01] SERVICE TELEMETRY
-          </Link>
-          <span>·</span>
-          <Link href="#feature-dual-fleet" className="hover:text-[var(--accent)] transition-colors whitespace-nowrap">
-            [02] DUAL FLEET
-          </Link>
-          <span>·</span>
-          <Link href="#feature-parts" className="hover:text-[var(--accent)] transition-colors whitespace-nowrap">
-            [03] PARTS PRICING
-          </Link>
-          <span>·</span>
-          <Link href="#feature-qr" className="hover:text-[var(--accent)] transition-colors whitespace-nowrap">
-            [04] QR PASSPORTS
-          </Link>
-          <span>·</span>
-          <Link href="#feature-rbac" className="hover:text-[var(--accent)] transition-colors whitespace-nowrap">
-            [05] RBAC COMMAND
-          </Link>
+      <div
+        className="relative z-10 w-full max-w-7xl mx-auto pt-6 border-t flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs font-mono"
+        style={{ borderColor: "var(--divider)", color: "var(--text-muted)" }}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { href: "#feature-telemetry", id: "01", label: "SERVICE TELEMETRY" },
+            { href: "#feature-dual-fleet", id: "02", label: "DUAL FLEET" },
+            { href: "#feature-parts", id: "03", label: "PARTS PRICING" },
+            { href: "#feature-qr", id: "04", label: "QR PASSPORTS" },
+            { href: "#feature-rbac", id: "05", label: "RBAC COMMAND" },
+          ].map((f) => (
+            <Link
+              key={f.id}
+              href={f.href}
+              className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[11px] font-mono font-medium transition-all duration-150 hover:border-[var(--card-border-hover)] active:scale-[0.98]"
+              style={{
+                backgroundColor: "var(--card-bg-solid)",
+                borderColor: "var(--card-border)",
+                color: "var(--text-secondary)",
+              }}
+            >
+              <span
+                className="font-bold text-[10px] px-1.5 py-0.5 rounded"
+                style={{
+                  backgroundColor: "var(--accent-muted)",
+                  color: "var(--accent)",
+                }}
+              >
+                {f.id}
+              </span>
+              <span
+                className="group-hover:text-[var(--text-primary)] transition-colors whitespace-nowrap"
+              >
+                {f.label}
+              </span>
+            </Link>
+          ))}
         </div>
-        <span className="text-[10px] text-slate-500 font-bold uppercase">
-          MARKETING OVERVIEW
-        </span>
+
+        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+          <span>CAPABILITY INDEX</span>
+        </div>
       </div>
     </section>
   );

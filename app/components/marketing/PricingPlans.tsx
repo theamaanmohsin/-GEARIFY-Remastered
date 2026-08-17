@@ -100,7 +100,7 @@ export default function PricingPlans() {
               Transparent Workshop Pricing
             </h2>
           </div>
-          <div className="text-xs font-mono text-slate-500 uppercase tracking-widest">
+          <div className="text-xs font-mono uppercase tracking-widest" style={{ color: "var(--accent)" }}>
             SIMPLE MONTHLY BILLING · ZERO SURPRISES
           </div>
         </div>
@@ -126,7 +126,10 @@ export default function PricingPlans() {
               >
                 {/* Popular Badge */}
                 {plan.badge && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-mono font-black uppercase tracking-wider bg-[var(--accent)] text-slate-950 shadow-md">
+                  <div
+                    className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-mono font-black uppercase tracking-wider shadow-md"
+                    style={{ backgroundColor: "var(--accent)", color: "var(--bg-main)" }}
+                  >
                     {plan.badge}
                   </div>
                 )}
@@ -146,7 +149,7 @@ export default function PricingPlans() {
                     <div className="text-3xl sm:text-4xl font-black font-mono" style={{ color: "var(--text-primary)" }}>
                       {plan.price}
                     </div>
-                    <span className="text-xs font-mono text-slate-500">{plan.period}</span>
+                    <span className="text-xs font-mono" style={{ color: "var(--text-muted)" }}>{plan.period}</span>
                   </div>
 
                   {/* Feature Checklist */}

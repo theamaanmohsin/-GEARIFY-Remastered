@@ -107,7 +107,7 @@ export default function StatusFilmstrip() {
               Status Intelligence In Action
             </h2>
           </div>
-          <div className="text-xs font-mono text-slate-500 uppercase tracking-widest">
+          <div className="text-xs font-mono uppercase tracking-widest" style={{ color: "var(--accent)" }}>
             35MM FILMSTRIP SCRUBBER · COLOR TELEMETRY MEANINGS
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function StatusFilmstrip() {
                   onClick={() => setSelectedFrame(frame)}
                   whileHover={reduceMotion ? undefined : { y: -4, scale: 1.02 }}
                   className={`p-6 rounded-2xl border cursor-pointer transition-all duration-300 relative space-y-4 ${
-                    isSelected ? "ring-2" : "hover:border-slate-500"
+                    isSelected ? "ring-2" : "hover:border-[var(--card-border-hover)]"
                   }`}
                   style={{
                     backgroundColor: "var(--bg-surface)",
@@ -144,7 +144,7 @@ export default function StatusFilmstrip() {
                   }}
                 >
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="font-bold text-slate-400">FRAME 0{idx + 1}</span>
+                    <span className="font-bold" style={{ color: "var(--text-secondary)" }}>FRAME 0{idx + 1}</span>
                     <span
                       className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
                       style={{ backgroundColor: `${frame.color}20`, color: frame.color }}
@@ -164,7 +164,7 @@ export default function StatusFilmstrip() {
                       <h4 className="font-extrabold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
                         {frame.name}
                       </h4>
-                      <span className="text-[10px] font-mono text-slate-500">{frame.code}</span>
+                      <span className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>{frame.code}</span>
                     </div>
                   </div>
 
@@ -177,15 +177,15 @@ export default function StatusFilmstrip() {
           </div>
 
           {/* Bottom Filmstrip Sprockets */}
-          <div className="h-6 w-full filmstrip-sprockets opacity-40 mt-4" />
+          <div className="h-6 w-full filmstrip-sprockets opacity-40 mt-6" />
         </div>
 
-        {/* Active Frame Detailed Simulation Breakdown */}
+        {/* Selected Frame Action Matrix Preview */}
         <motion.div
           key={selectedFrame.id}
-          initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
+          initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 24 }}
+          transition={{ duration: 0.3 }}
           className="p-6 sm:p-8 rounded-3xl border space-y-6"
           style={{
             backgroundColor: "var(--card-bg-solid)",
@@ -197,7 +197,7 @@ export default function StatusFilmstrip() {
             <div className="flex items-center gap-3">
               <StatusIcon className="w-6 h-6" style={{ color: selectedFrame.color }} />
               <div>
-                <span className="text-[10px] font-mono uppercase font-bold tracking-widest text-slate-500">
+                <span className="text-[10px] font-mono uppercase font-bold tracking-widest" style={{ color: "var(--text-muted)" }}>
                   IN-APP TELEMETRY ACTION PROTOCOL
                 </span>
                 <h3 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>
@@ -212,20 +212,20 @@ export default function StatusFilmstrip() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
             <div className="p-4 rounded-xl border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
-              <span className="text-[10px] text-slate-500 uppercase block">ODOMETER THRESHOLD</span>
+              <span className="text-[10px] uppercase block font-semibold" style={{ color: "var(--text-muted)" }}>ODOMETER THRESHOLD</span>
               <span className="font-bold text-sm" style={{ color: selectedFrame.color }}>
                 {selectedFrame.simulatedDisplay.kmStatus}
               </span>
             </div>
             <div className="p-4 rounded-xl border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
-              <span className="text-[10px] text-slate-500 uppercase block">WORKSHOP ACTION</span>
+              <span className="text-[10px] uppercase block font-semibold" style={{ color: "var(--text-muted)" }}>WORKSHOP ACTION</span>
               <span className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>
                 {selectedFrame.simulatedDisplay.actionPrompt}
               </span>
             </div>
             <div className="p-4 rounded-xl border" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--card-border)" }}>
-              <span className="text-[10px] text-slate-500 uppercase block">FLUID DEGRADATION</span>
-              <span className="font-bold text-sm text-slate-300">
+              <span className="text-[10px] uppercase block font-semibold" style={{ color: "var(--text-muted)" }}>FLUID DEGRADATION</span>
+              <span className="font-bold text-sm" style={{ color: "var(--text-secondary)" }}>
                 {selectedFrame.simulatedDisplay.lubricantLife}
               </span>
             </div>

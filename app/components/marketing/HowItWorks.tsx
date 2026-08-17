@@ -60,7 +60,7 @@ export default function HowItWorks() {
               How It Works
             </h2>
           </div>
-          <div className="text-xs font-mono text-slate-500 uppercase tracking-widest">
+          <div className="text-xs font-mono uppercase tracking-widest" style={{ color: "var(--accent)" }}>
             FOUR-STEP WORKSHOP OPERATING FLOW
           </div>
         </div>
@@ -77,7 +77,7 @@ export default function HowItWorks() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ type: "spring", stiffness: 280, damping: 24, delay: idx * 0.08 }}
-                className="p-6 rounded-3xl border flex flex-col justify-between space-y-6 relative group overflow-hidden shadow-lg"
+                className="p-8 rounded-3xl border flex flex-col justify-between space-y-6 relative shadow-lg group hover:border-[var(--card-border-hover)] transition-all duration-300"
                 style={{
                   backgroundColor: "var(--card-bg-solid)",
                   borderColor: "var(--card-border)",
@@ -89,16 +89,16 @@ export default function HowItWorks() {
                   {s.step}
                 </span>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md"
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md transition-transform group-hover:scale-105"
                     style={{ backgroundColor: `${s.accent}18`, color: s.accent }}
                   >
                     <Icon className="w-6 h-6" />
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[10px] font-mono uppercase font-bold text-slate-500">STAGE {s.step}</span>
+                    <span className="text-[10px] font-mono uppercase font-bold" style={{ color: "var(--text-muted)" }}>STAGE {s.step}</span>
                     <h3 className="font-extrabold text-base tracking-tight" style={{ color: "var(--text-primary)" }}>
                       {s.title}
                     </h3>
@@ -109,7 +109,7 @@ export default function HowItWorks() {
                   </p>
                 </div>
 
-                <div className="pt-4 border-t text-[10px] font-mono uppercase text-slate-500" style={{ borderColor: "var(--divider)" }}>
+                <div className="pt-4 border-t text-[10px] font-mono uppercase" style={{ borderColor: "var(--divider)", color: "var(--text-muted)" }}>
                   ZERO CALCULATION OVERHEAD
                 </div>
               </motion.div>
