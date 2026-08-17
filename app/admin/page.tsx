@@ -47,11 +47,12 @@ export default function AdminConsolePage() {
     setLoading(true);
     try {
       const authHeaders = getAuthHeaders();
+      const timestamp = Date.now();
       const [partsRes, usersRes, keyRes, currRes] = await Promise.all([
-        fetch("/api/parts", { headers: authHeaders, credentials: "include" }),
-        fetch("/api/users", { headers: authHeaders, credentials: "include" }),
-        fetch("/api/settings/admin_key", { headers: authHeaders, credentials: "include" }),
-        fetch("/api/settings/default_currency", { headers: authHeaders, credentials: "include" }),
+        fetch(`/api/parts?t=${timestamp}`, { headers: authHeaders, credentials: "include", cache: "no-store" }),
+        fetch(`/api/users?t=${timestamp}`, { headers: authHeaders, credentials: "include", cache: "no-store" }),
+        fetch(`/api/settings/admin_key?t=${timestamp}`, { headers: authHeaders, credentials: "include", cache: "no-store" }),
+        fetch(`/api/settings/default_currency?t=${timestamp}`, { headers: authHeaders, credentials: "include", cache: "no-store" }),
       ]);
 
       if (partsRes.ok) {
@@ -64,11 +65,15 @@ export default function AdminConsolePage() {
       }
       if (keyRes.ok) {
         const keyData = await keyRes.json();
-        setAdminKey(keyData.value || "GearifyAPMS");
+        if (keyData.value) {
+          setAdminKey(keyData.value);
+        }
       }
       if (currRes.ok) {
         const currData = await currRes.json();
-        setCurrency(currData.value || "PKR");
+        if (currData.value) {
+          setCurrency(currData.value);
+        }
       }
     } catch (err) {
       console.error("Admin data load error:", err);
