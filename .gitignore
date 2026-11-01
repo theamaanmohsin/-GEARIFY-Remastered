@@ -8,6 +8,9 @@ node_modules/
 .env.local
 .env.production
 
+# Database
+*.db
+
 # Python
 __pycache__/
 *.pyc

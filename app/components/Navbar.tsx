@@ -57,7 +57,6 @@ export default function Navbar() {
       /* best-effort */
     }
     localStorage.removeItem("gearify_user");
-    localStorage.removeItem("gearify_token");
     setUser(null);
     setMobileOpen(false);
     router.push("/login");

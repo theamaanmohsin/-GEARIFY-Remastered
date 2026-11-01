@@ -27,15 +27,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # ---------------------------------------------------------------------------
 # Configuration & Secret Management
 # ---------------------------------------------------------------------------
-_default_secret = "gearify_dev_jwt_secret_change_in_production_2026"
 SECRET_KEY = os.environ.get("JWT_SECRET")
 
 if not SECRET_KEY:
-    # In production environments, log a prominent warning if default is used
-    if os.environ.get("VERCEL") or os.environ.get("ENV") == "production":
-        import warnings
-        warnings.warn("CRITICAL: JWT_SECRET environment variable is not set in production! Using fallback.", RuntimeWarning)
-    SECRET_KEY = _default_secret
+    _is_production = os.environ.get("VERCEL") or os.environ.get("ENV") == "production"
+    if _is_production:
+        raise RuntimeError("CRITICAL: JWT_SECRET environment variable must be set in production.")
+    SECRET_KEY = secrets.token_hex(32)
 
 ALGORITHM = "HS256"
 TOKEN_EXPIRATION_HOURS = int(os.environ.get("SESSION_EXPIRATION_HOURS", "24"))
@@ -288,6 +286,23 @@ def get_current_user_payload() -> dict | None:
     return decode_token(token)
 
 
+def _verify_token_version(payload: dict) -> bool:
+    """Checks that the JWT's token_version matches the user's current version in the database."""
+    from api.models import User, get_session
+    token_version = payload.get("token_version")
+    user_id = payload.get("user_id")
+    if token_version is None or user_id is None:
+        return False
+    session = get_session()
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return False
+        return int(getattr(user, "token_version", 1)) == int(token_version)
+    finally:
+        session.close()
+
+
 def require_auth(f):
     """Decorator requiring a valid logged-in user with active token."""
     @functools.wraps(f)
@@ -295,6 +310,8 @@ def require_auth(f):
         user_payload = get_current_user_payload()
         if not user_payload:
             return jsonify({"error": "Unauthorized", "detail": "Valid authentication token required"}), 401
+        if not _verify_token_version(user_payload):
+            return jsonify({"error": "Unauthorized", "detail": "Session expired. Please log in again."}), 401
         request.user = user_payload  # type: ignore
         return f(*args, **kwargs)
     return decorated_function
@@ -308,6 +325,8 @@ def require_role(required_role: str):
             user_payload = get_current_user_payload()
             if not user_payload:
                 return jsonify({"error": "Unauthorized", "detail": "Valid authentication token required"}), 401
+            if not _verify_token_version(user_payload):
+                return jsonify({"error": "Unauthorized", "detail": "Session expired. Please log in again."}), 401
             if user_payload.get("role") != required_role:
                 return jsonify({"error": "Forbidden", "detail": f"Requires {required_role} role"}), 403
             request.user = user_payload  # type: ignore

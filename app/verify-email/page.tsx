@@ -49,9 +49,6 @@ function VerifyEmailForm() {
         throw new Error(data.detail || data.error || "Email verification failed");
       }
 
-      if (data.token) {
-        localStorage.setItem("gearify_token", data.token);
-      }
       if (data.user) {
         localStorage.setItem("gearify_user", JSON.stringify(data.user));
       }

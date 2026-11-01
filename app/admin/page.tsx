@@ -35,11 +35,7 @@ export default function AdminConsolePage() {
   const [error, setError] = useState<string | null>(null);
 
   const getAuthHeaders = () => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("gearify_token") : null;
     const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
     return headers;
   };
 
