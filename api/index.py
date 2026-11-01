@@ -6,6 +6,7 @@ Implements Phase 1, Phase 2, and Phase 3 API endpoints.
 """
 
 import os
+import secrets
 from datetime import datetime, timezone, timedelta
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
@@ -39,13 +40,16 @@ app = Flask(__name__)
 
 # CORS Setup
 # pyrefly: ignore
+_cors_origins = [
+    o for o in [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        os.environ.get("FRONTEND_URL", ""),
+    ] if o
+]
 CORS(app, resources={
     r"/api/*": {
-        "origins": [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            os.environ.get("FRONTEND_URL", ""),
-        ],
+        "origins": _cors_origins,
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "supports_credentials": True,
@@ -121,7 +125,7 @@ def safe_int(value) -> int:
 
 
 _default_settings = [
-    Setting(key="admin_key", value="GearifyAPMS"),
+    Setting(key="admin_key", value=os.environ.get("ADMIN_SECRET_KEY", secrets.token_urlsafe(24))),
     Setting(key="default_currency", value="PKR"),
 ]
 
@@ -251,7 +255,9 @@ def register_user():
         # If admin registration, check secret key with constant-time comparison
         if role == "admin":
             admin_setting = session.query(Setting).filter_by(key="admin_key").first()
-            current_admin_key = str(admin_setting.value) if admin_setting else "GearifyAPMS"
+            if not admin_setting:
+                return jsonify({"error": "Admin registration is not configured. Set ADMIN_SECRET_KEY."}), 503
+            current_admin_key = str(admin_setting.value)
             if not secure_compare(secret_key, current_admin_key):
                 return jsonify({"error": "Invalid Admin Security Key. Access Denied."}), 403
 
@@ -303,9 +309,8 @@ def register_user():
             "user": user.to_dict(),
             "token": token,
         }
-        # In dev or unverified state, return verification link payload
         if not is_verified:
-            res_data["verification_token"] = raw_verify_token
+            app.logger.info(f"Verification token for {email}: {raw_verify_token}")
 
         res = jsonify(res_data)
         set_auth_cookie(res, token)
@@ -433,18 +438,14 @@ def login_user():
         session.close()
 
 
-@app.route("/api/auth/verify-email", methods=["POST", "GET"])
+@app.route("/api/auth/verify-email", methods=["POST"])
 def verify_email():
     """
     Verifies a user's email address using a cryptographic single-use token.
-    Accepts JSON body `{"token": "..."}` or query parameter `?token=...`.
+    Accepts JSON body `{"token": "..."}`.
     """
-    raw_token = ""
-    if request.method == "GET":
-        raw_token = request.args.get("token", "").strip()
-    else:
-        data = request.get_json() or {}
-        raw_token = data.get("token", "").strip()
+    data = request.get_json() or {}
+    raw_token = data.get("token", "").strip()
 
     if not raw_token:
         return jsonify({"error": "Verification token is required"}), 400
@@ -529,11 +530,10 @@ def resend_verification():
             setattr(user, "verification_token_expires_at", datetime.now(timezone.utc) + timedelta(hours=24))
             session.commit()
 
-        res_data = {"message": "If an unverified account exists with that email, a new verification link has been generated."}
         if raw_token:
-            res_data["verification_token"] = raw_token
+            app.logger.info(f"Resend verification token for {email}: {raw_token}")
 
-        return jsonify(res_data)
+        return jsonify({"message": "If an unverified account exists with that email, a new verification link has been generated."})
 
     except Exception as e:
         session.rollback()
@@ -568,14 +568,12 @@ def forgot_password():
             setattr(user, "reset_token_expires_at", datetime.now(timezone.utc) + timedelta(minutes=15))
             session.commit()
 
-        res_data = {
-            "message": "If an account with that email exists, a password reset link has been generated and expires in 15 minutes."
-        }
-        # In development/local mode, provide the token for verification
         if raw_reset_token:
-            res_data["reset_token"] = raw_reset_token
+            app.logger.info(f"Password reset token for {email}: {raw_reset_token}")
 
-        return jsonify(res_data)
+        return jsonify({
+            "message": "If an account with that email exists, a password reset link has been generated and expires in 15 minutes."
+        })
 
     except Exception as e:
         session.rollback()
@@ -940,7 +938,7 @@ def get_service_history():
         if role != "admin":
             query = query.filter(ServiceRecord.mechanic_id == user_id)
 
-        search_term = request.args.get("q", "").strip()
+        search_term = sanitize_search_query(request.args.get("q", ""))
         if search_term:
             like_pattern = f"%{search_term}%"
             query = query.join(Vehicle).filter(
@@ -1802,5 +1800,5 @@ def serve_service_photo(filename):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5328)
+    app.run(debug=os.environ.get("FLASK_DEBUG") == "1", port=5328)
 

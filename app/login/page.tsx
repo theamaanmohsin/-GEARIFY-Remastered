@@ -40,9 +40,6 @@ export default function LoginPage() {
         throw new Error(data.detail || data.error || "Login failed");
       }
 
-      if (data.token) {
-        localStorage.setItem("gearify_token", data.token);
-      }
       if (data.user) {
         localStorage.setItem("gearify_user", JSON.stringify(data.user));
       }

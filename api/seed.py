@@ -54,7 +54,7 @@ def seed():
     existing_settings = session.query(Setting).count()
     if existing_settings == 0:
         settings = [
-            Setting(key="admin_key", value="GearifyAPMS"),       # matches v1
+            Setting(key="admin_key", value=os.environ.get("ADMIN_SECRET_KEY", "GearifyAPMS_CHANGE_ME")),
             Setting(key="default_currency", value="PKR"),
         ]
         session.add_all(settings)
